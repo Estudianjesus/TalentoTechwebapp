@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGestión - Portal de Afiliados</title>
+      <!-- Bootstrap CSS -->
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- Chart.js para gráficos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<!-- Toastify CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<!-- Toastify JS -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<!-- Estilos y scripts personalizados -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}">
+
+
+
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Premium con Experiencia Mejorada -->
+        <header class="header">
+            <div class="header-content">
+                <div class="brand-section">
+                    <div class="logo-medi">
+                        <div class="logo-icon-circle">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                    </div>
+                    <div class="brand-text">
+                        <h1 class="brand-name">MediGestión</h1>
+                        <p class="brand-slogan">Tu salud es nuestra prioridad</p>
+                    </div>
+                </div>
+                
+                <!-- Navegación principal en el header -->
+                <nav class="main-nav">
+                    <ul class="main-nav-list">
+                        <li class="main-nav-item">
+                            <a href="#" class="main-nav-link active">
+                                <i class="fas fa-home"></i> Inicio
+                            </a>
+                        </li>
+                        <li class="main-nav-item">
+                            <a href="#" class="main-nav-link">
+                                <i class="fas fa-stethoscope"></i> Médicos
+                            </a>
+                        </li>
+                        <li class="main-nav-item">
+                            <a href="#" class="main-nav-link">
+                                <i class="fas fa-hospital"></i> Centros
+                            </a>
+                        </li>
+                        <li class="main-nav-item">
+                            <a href="#" class="main-nav-link">
+                                <i class="fas fa-bell"></i> Notificaciones
+                                <span class="nav-badge">3</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <!-- Menú de usuario mejorado -->
+                <div class="user-section dropdown" id="userSection">
+                    <div class="user-menu-trigger d-flex align-items-center" id="userMenuTrigger">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="user-name" id="nombreapellido" >{{ paciente.primer_nombre | upper }}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.8;"></i>
+                    </div>
+                
+                    <div class="user-dropdown dropdown-menu">
+                        <div class="user-dropdown-header">
+                            <h4 class="user-dropdown-title" id="userDropdownName">{{ paciente.primer_nombre | upper ~ ' ' ~ paciente.primer_apellido | upper }}</h4>
+                            <p class="user-dropdown-subtitle" id="userDropdownId">{{paciente.tipo_documento ~ ':' ~ paciente.numero_documento }}</p>
+                        </div>
+                        <div class="user-dropdown-body">
+                            <a href="{{ url_for('perfil_usuario') }}" class="user-menu-link dropdown-item">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Mi Perfil</span>
+                            </a>
+                            <a href="#" class="user-menu-link dropdown-item d-flex justify-content-between">
+                                <span><i class="fas fa-bell"></i> Notificaciones</span>
+                                <span class="ms-auto badge bg-danger rounded-pill">3</span>
+                            </a>
+                        </div>
+                        <div class="user-dropdown-footer">
+                            <a href="{{ url_for('salir') }}" class="logout-btn dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Cerrar Sesión</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Navegación de pestañas mejorada -->
+        <div class="nav-tabs-container">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab">
+                        <i class="fas fa-home"></i> Inicio
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" role="tab">
+                        <i class="fas fa-calendar-check"></i> Mis Citas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                        <i class="fas fa-file-medical"></i> Mi Historial
+                    </button>
+                </li>
+    
+            </ul>
+        </div>
+        
+        <!-- Contenido de las pestañas -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Pestaña de Inicio -->
+            <div class="tab-pane fade show active" id="home" role="tabpanel">
+                <!-- Acciones rápidas con diseño premium -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action"  onclick="window.location.href='{{ url_for('agendar') }}'">
+                            <div class="icon-container animate-pulse">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <p>Agendar Cita</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action">
+                            <div class="icon-container">
+                                <i class="fas fa-prescription-bottle-alt"></i>
+                            </div>
+                            <p>Mis Medicamentos</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action">
+                            <div class="icon-container">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <p>Autorizaciones</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action">
+                            <div class="icon-container">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <p>Médicos</p>
+                        </div>
+                    </div>
+                </div>
+
+    <main class="container mt-5">
+        <section class="card shadow-lg p-4 collapse" id="formularioCita">
+            <h2 class="text-center mb-4">Agendar Cita</h2>
+            <form id="formCita">
+                <div class="row g-3">
+                    <!-- Tipo de Documento -->
+                    <div class="col-md-6">
+                        <label for="tipo_documento" class="form-label">Tipo de Documento</label>
+                        <input type="text" class="form-control" id="tipo_documento" name="tipo_documento" readonly required>
+                    </div>
+                    <!-- Número de Documento -->
+                    <div class="col-md-6">
+                        <label for="documentNumber" class="form-label">Número de Documento</label>
+                        <input type="text" class="form-control" id="documentNumber" name="documentNumber" readonly required>
+                    </div>
+                    <!-- Nombre y Segundo Nombre -->
+                    <div class="col-md-6">
+                        <label for="nombre" class="form-label">Primer Nombre</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" readonly required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="segundo_nombre" class="form-label">Segundo Nombre</label>
+                        <input type="text" class="form-control" id="segundo_nombre" name="segundo_nombre" readonly>
+                    </div>
+                    <!-- Apellido y Segundo Apellido -->
+                    <div class="col-md-6">
+                        <label for="apellido" class="form-label">Primer Apellido</label>
+                        <input type="text" class="form-control" id="apellido" name="apellido" readonly required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="segundo_apellido" class="form-label">Segundo Apellido</label>
+                        <input type="text" class="form-control" id="segundo_apellido" name="segundo_apellido" readonly>
+                    </div>
+                    <!-- Tipo de Cita -->
+                    <div class="col-md-6">
+                        <label for="tipo_cita" class="form-label">Tipo de Cita</label>
+                        <select class="form-select" id="tipo_cita" name="tipo_cita" required>
+                            <option value="Medicina General">Medicina General</option>
+                            <option value="Odontología">Odontología</option>
+                            <option value="Pediatría">Pediatría</option>
+                        </select>
+                    </div>
+                    <!-- Fecha y Hora -->
+                    <div class="col-md-3">
+                        <label for="fecha" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="hora" class="form-label">Hora</label>
+                        <input type="time" class="form-control" id="hora" name="hora" required>
+                    </div>
+                    <!-- Motivo -->
+                    <div class="col-12">
+                        <label for="motivo" class="form-label">Motivo</label>
+                        <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
+                    </div>
+                </div>
+                <!-- Botón de Enviar -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary w-100">Agendar Cita</button>
+                </div>
+            </form>
+        </section>
+        {% block content%}
+        {% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/usuario/abrir_perfil.js') }}"></script> 
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

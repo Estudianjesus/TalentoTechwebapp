@@ -1,0 +1,376 @@
+{% extends "admin/admin_dashboard.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --accent-color: #e74c3c;
+    }
+    
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .container{
+        margin-top:50px !important;
+    }
+    
+    .form-container {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+        border-left: 5px solid var(--secondary-color);
+        padding-left: 15px;
+        margin: 1.5rem 0;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        border-color: var(--secondary-color);
+    }
+    
+    .input-group-text {
+        border-radius: 10px 0 0 10px;
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, var(--secondary-color), #2980b9);
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        transition: all 0.3s;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        background: linear-gradient(to right, #2980b9, var(--secondary-color));
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-floating > .form-control, 
+    .form-floating > .form-select {
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+    }
+    
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+    }
+    
+    .form-check {
+        padding-left: 2rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+    
+    .form-icon {
+        font-size: 1.5rem;
+        color: var(--secondary-color);
+        margin-right: 0.5rem;
+    }
+    
+    .required-field::after {
+        content: '*';
+        color: var(--accent-color);
+        margin-left: 4px;
+    }
+    
+    .password-indicator {
+        height: 5px;
+        transition: all 0.3s;
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+    
+    .floating-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: var(--secondary-color);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.2);
+        transition: all 0.3s;
+        z-index: 1000;
+    }
+    
+    .floating-button:hover {
+        transform: scale(1.1);
+    }
+    
+    .readonly-field {
+        background-color: #f8f9fa;
+        opacity: 0.8;
+    }
+    
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 1rem;
+        }
+        
+        .form-header {
+            padding: 1rem;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container mt-4 py-4 ">
+    <div id="mensaje_alerta"></div> 
+<div class="form-header">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-person-gear me-3" style="font-size: 2.5rem;"></i>
+        <div>
+            <h1 class="mb-0">Editar Paciente</h1>
+            <p class="mb-0 text-white-50">Actualiza los datos del paciente</p>
+        </div>
+    </div>
+</div>
+
+<form id="form_editar_paciente" class="form-container">
+    <input type="hidden" id="paciente_id" value="{{ paciente.id }}">
+    
+    <!-- Datos personales -->
+    <div class="section-title">
+        <i class="bi bi-person-lines-fill form-icon"></i>
+        <span>Datos personales</span>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="primer_nombre" placeholder="Primer nombre" value="{{ paciente.primer_nombre }}" required>
+                <label for="primer_nombre" class="required-field">Primer Nombre</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="segundo_nombre" placeholder="Segundo nombre" value="{{ paciente.segundo_nombre }}">
+                <label for="segundo_nombre">Segundo Nombre</label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="primer_apellido" placeholder="Primer apellido" value="{{ paciente.primer_apellido }}" required>
+                <label for="primer_apellido" class="required-field">Primer Apellido</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="segundo_apellido" placeholder="Segundo apellido" value="{{ paciente.segundo_apellido }}">
+                <label for="segundo_apellido">Segundo Apellido</label>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="date" class="form-control" id="fecha_expedicion" placeholder="fecha_expedicion" value="{{ paciente.fecha_expedicion }}">
+                <label for="segundo_apellido">fecha_expedicion</label>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="date" class="form-control" id="fecha_nacimiento" placeholder="fecha nacimiento" value="{{ paciente.fecha_nacimiento }}">
+                <label for="segundo_apellido">fecha_nacimiento</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+
+        
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <select class="form-select" id="tipo_documento" required>
+                    <option value="CC" {% if paciente.tipo_documento == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                    <option value="TI" {% if paciente.tipo_documento == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
+                    <option value="CE" {% if paciente.tipo_documento == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
+                </select>
+                <label for="tipo_documento" class="required-field">Tipo de Documento</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control readonly-field" id="numero_documento" placeholder="Número de documento" value="{{ paciente.numero_documento }}" readonly>
+                <label for="numero_documento">Número de Documento</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Datos de contacto -->
+    <div class="section-title">
+        <i class="bi bi-envelope-at form-icon"></i>
+        <span>Datos de contacto</span>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="email" class="form-control" id="correo" placeholder="Correo" value="{{ paciente.correo }}" required>
+                <label for="correo" class="required-field">Correo</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="tel" class="form-control" id="telefono" placeholder="Teléfono" value="{{ paciente.telefono }}" required>
+                <label for="telefono" class="required-field">Teléfono</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <div class="form-floating">
+            <input type="text" class="form-control" id="direccion" placeholder="Dirección" value="{{ paciente.direccion }}" required>
+            <label for="direccion" class="required-field">Dirección</label>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="section-title">
+        <i class="bi bi-info-circle form-icon"></i>
+        <span>Información adicional</span>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="zona" placeholder="Zona" value="{{ paciente.zona }}">
+                <label for="zona">Zona</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="departamento" placeholder="Departamento" value="{{ paciente.departamento }}">
+                <label for="departamento">Departamento</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <select class="form-select" id="sexo">
+                    <option value="M" {% if paciente.sexo == 'M' %}selected{% endif %}>Masculino</option>
+                    <option value="F" {% if paciente.sexo == 'F' %}selected{% endif %}>Femenino</option>
+                </select>
+                <label for="sexo">Sexo</label>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="ficha_sisben" placeholder="Ficha Sisben" value="{{ paciente.ficha_sisben }}">
+                <label for="ficha_sisben">Ficha Sisben</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cambios en la cuenta de usuario -->
+    <div class="section-title">
+        <i class="bi bi-shield-lock form-icon"></i>
+        <span>Información de la cuenta de usuario</span>
+    </div>
+
+    <div class="mb-4">
+        <div class="form-floating">
+            <input type="password" class="form-control" id="contraseña" placeholder="Contraseña">
+            <label for="contraseña">Contraseña</label>
+        </div>
+        <div class="password-indicator" id="password_strength"></div>
+        <small class="form-text text-muted">Deja este campo vacío si no deseas cambiar la contraseña.</small>
+    </div>
+
+    <div class="mb-4">
+        <div class="form-floating">
+            <select class="form-select" id="activo">
+                <option value="1" {% if usuario.activo %}selected{% endif %}>Activo</option>
+                <option value="0" {% if not usuario.activo %}selected{% endif %}>Inactivo</option>
+            </select>
+            <label for="activo">Estado de Cuenta</label>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-5">
+        <a href="/admin/pacientes" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-2"></i>Guardar Cambios
+        </button>
+    </div>
+</form>
+</div>
+
+<div class="floating-button" id="scroll_top">
+<i class="bi bi-arrow-up"></i>
+</div>
+
+<script src="{{ url_for('static', filename='js/grud_admin/editar.js') }}"></script> 
+<script src="{{ url_for('static', filename='js/grud_admin/solicitud.js') }}"></script> 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/alerta_mesaje_admin.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+   
+</script>
+{% endblock %}

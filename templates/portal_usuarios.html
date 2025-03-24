@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Subsidiado</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link></link>
+    <style>
+        
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #D1F8EF;
+            --light-color: #f8f9fa;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .form-container {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #ffffff 100%);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .left-panel {
+            background-color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+        }
+        
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI4MCIgc3Ryb2tlPSIjMDA4MEZGMjAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIHN0cm9rZT0iIzAwODBGRjIwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.4;
+            z-index: 0;
+        }
+        
+        .form-panel {
+            background-color: white;
+            padding: 30px;
+            border-radius: 0 15px 15px 0;
+        }
+        
+        .form-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .form-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+        
+        .form-floating {
+            margin-bottom: 15px;
+        }
+        
+        .form-floating > label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
+        
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 10px 40px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            width: 80%;
+            max-width: 300px;
+        }
+        
+        .btn-submit:hover {
+            background-color: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
+        
+        .form-section {
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 991.98px) {
+            .left-panel {
+                min-height: 150px;
+                border-radius: 15px 15px 0 0;
+            }
+            
+            .form-panel {
+                border-radius: 0 0 15px 15px;
+            }
+        }
+
+        .new-header-curve {
+            position: relative;
+            height: 400px; /* Ajusta la altura */
+            background-image: url('../static/img/nosotros.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: 4;
+            margin-top:-80px;
+        }
+        
+        .new-gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+              90deg,
+              rgba(5, 136, 202, 0.468) 0%,  /* Menos opacidad */
+              rgba(0, 204, 136, 0.661) 50%
+            );
+            backdrop-filter: blur(1px); 
+            z-index: 1;
+        }
+        
+        .new-curve {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background: #f0f2f5;
+            border-radius: 100% 100% 0 0;
+            z-index: 3;
+        }
+        
+        .new-overlay-text {
+            position: relative;
+            z-index: 2; 
+            color: white;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); 
+            margin-top: 80px;
+            color: #fff; 
+            font-size: 25px; 
+            font-weight: 600; 
+        }
+        
+        .new-values-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #0088cc;
+        }
+        
+        .new-corporate-identity {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .new-mivi {
+            background-color: #64748b;
+        }
+        
+        /* Pagina de urgencias 24/7 */
+        .new-urge {
+            margin-top: 120px;
+            background: linear-gradient(
+              90deg,
+              rgba(0, 136, 204, 0.85) 0%,
+              rgba(0, 204, 136, 0.85) 100%
+            );
+        }    
+ 
+    </style>
+</head>
+<body>
+     
+    <div class="new-header-curve">
+        <div class="new-gradient-overlay"></div>
+        <div class="container pt-5">
+            <nav aria-label="breadcrumb" class="new-overlay-text d-flex" >
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Inicio</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Formulario de afiliados</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="new-curve"></div>
+    </div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="form-container row">
+                    <!-- Left decorative panel -->
+                    <div class="col-lg-4 left-panel d-flex align-items-center justify-content-center p-4">
+                        <h2 class="text-primary fw-bold position-relative z-1">Programa de Salud </h2>
+                    </div>
+                    
+                    <!-- Form panel -->
+                    <div class="col-lg-8 form-panel">
+                        <h1 class="form-title mb-4">Registro </h1>
+                        
+                        <form id="registroForm" method="POST" action="{{ url_for('portal_usuarios') }}">
+                            <div class="row">
+                                <!-- Tipo de documento y número -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="tipo_documento" class="form-label fw-bold">Tipo de Documento</label>
+                                    <select id="tipo_documento" class="form-select">
+                                        <option value="" disabled selected>Seleccione una opción</option>
+                                        <option value="cc">Cédula de Ciudadanía</option>
+                                        <option value="ti">Tarjeta de Identidad</option>
+                                        <option value="ce">Cédula de Extranjería</option>
+                                        <option value="pp">Pasaporte</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="documentNumber" placeholder=" ">
+                                        <label for="documentNumber">Número De Documento</label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Fechas -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" id="fecha_expedicion" placeholder=" ">
+                                        <label for="fecha_expedicion">Fecha de Expedición</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" id="fecha_nacimiento" placeholder=" ">
+                                        <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                                    </div>
+                                </div>
+                                
+                  
+                                <div class="col-12">
+                                    <div class="form-section">
+                                        <p class="fw-bold mb-3 text-primary">Información Personal</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="primer_apellido" placeholder=" ">
+                                        <label for="primer_apellido">Primer Apellido</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="segundo_apellido" placeholder=" ">
+                                        <label for="segundo_apellido">Segundo Apellido</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="primer_nombre" placeholder=" ">
+                                        <label for="primer_nombre">Primer Nombre</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="segundo_nombre" placeholder=" ">
+                                        <label for="segundo_nombre">Segundo Nombre</label>
+                                    </div>
+                                </div>
+                                
+
+                                <div class="col-12">
+                                    <div class="form-section">
+                                        <p class="fw-bold mb-3 text-primary">Información de Contacto</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="departamento" placeholder=" ">
+                                        <label for="departamento">Departamento</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="direccion" placeholder=" ">
+                                        <label for="direccion">Dirección</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="telefono" placeholder=" ">
+                                        <label for="telefono">Teléfono</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" id="email" placeholder=" ">
+                                        <label for="email">Email</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="form-section">
+                                        <p class="fw-bold mb-3 text-primary">Información Adicional</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Zona</label>
+                                    <div class="d-flex gap-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="zona" id="zona_rural" value="rural">
+                                            <label class="form-check-label" for="zona_rural">Rural</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="zona" id="zona_urbana" value="urbana">
+                                            <label class="form-check-label" for="zona_urbana">Urbana</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Sexo del Afiliado</label>
+                                    <div class="d-flex gap-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="sexo" id="sexo_f" value="Femenino"> 
+                                            <label class="form-check-label" for="sexo_f">Femenino</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="sexo" id="sexo_m" value="Masculino"> 
+                                            <label class="form-check-label" for="sexo_m">Masculino</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-4">
+                                    <label for="sisben" class="form-label fw-bold">¿Tiene ficha del SISBEN?</label>
+                                    <select id="sisben" name="sisben" class="form-select">
+                                        <option value="">Seleccione una opción</option>
+                                        <option value="Grupo A">Grupo A</option>
+                                        <option value="Grupo B">Grupo B</option>
+                                        <option value="Grupo C">Grupo C</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="aceptarTerminos" required>
+                                        <label class="form-check-label" for="aceptarTerminos">
+                                            Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#modalTerminos">Términos y Condiciones</a>.
+                                        </label>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="usuario_id" value="{{ usuario_id }}">
+                                
+                                <div class="col-12 d-flex justify-content-center mt-4">
+                                    <button type="submit" class="btn btn-submit" id="but">
+                                        <i class="bi bi-save me-2"></i> Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div class="modal fade" id="modalTerminos" tabindex="-1" aria-labelledby="modalTerminosLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTerminosLabel">Términos y Condiciones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Aquí puedes escribir los términos y condiciones...</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Donec tincidunt...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-gradient text-white py-5 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Servicios -->
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Servicios</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Citas Médicas</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Urgencias</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Laboratorio Clínico</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Portal del Paciente</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">PQR</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Trabaja con Nosotros</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Contacto</h5>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-warning"></i>
+                            (123) 456-7890
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-warning"></i>
+                            contacto@eps.com
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-warning"></i>
+                            Calle Principal #123
+                        </li>
+                    </ul>
+                    <div class="emergency-section bg-white bg-opacity-10 p-3 rounded">
+                        <h6 class="text-warning">
+                            <i class="fas fa-ambulance me-2"></i>
+                            Línea de Emergencias 24/7
+                        </h6>
+                        <p class="mb-0 fs-5">018000 123 456</p>
+                    </div>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Síguenos</h5>
+                    <div class="mb-4">
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white fs-4">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="bg-black bg-opacity-10 mt-4">
+            <div class="container py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start">
+                        <small>© 2025 EPS. Todos los derechos reservados.</small>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="#" class="footer-link text-white me-3">Términos y Condiciones</a>
+                        <a href="#" class="footer-link text-white">Política de Privacidad</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom JS -->
+   <script src="/EPS/js/capdatos.js"></script>
+   <script src="{{ url_for('static', filename='js/iniciar_solicitud.js') }}"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</body>
+</html>

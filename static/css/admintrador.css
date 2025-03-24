@@ -1,0 +1,99 @@
+.eps-header {
+    background: linear-gradient(to right, #005b9f, #0078c8);
+    border-bottom: none;
+}
+
+.eps-logo {
+    background-color: white;
+    color: #005b9f;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.text-primary-eps {
+    color: #005b9f;
+}
+
+.eps-profile-img {
+    border-radius: 10px;
+    border: 3px solid #e0e0e0;
+}
+
+.default-profile-img {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    background-color: #0078c8;
+}
+
+.eps-status-active {
+    background-color: #28a745;
+}
+
+.eps-status-inactive {
+    background-color: #dc3545;
+}
+
+.eps-badge-afiliacion {
+    background-color: #0078c8;
+}
+
+.eps-badge-role {
+    background-color: #005b9f;
+    color: white;
+    padding: 5px 10px;
+}
+
+.eps-btn-primary {
+    background-color: #0078c8;
+    color: white;
+    border: none;
+}
+
+.eps-btn-primary:hover {
+    background-color: #005b9f;
+    color: white;
+}
+
+.eps-btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+}
+
+.eps-btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.eps-btn-success {
+    background-color: #28a745;
+    color: white;
+    border: none;
+}
+
+.eps-btn-outline {
+    border: 1px solid #0078c8;
+    color: #0078c8;
+    background-color: transparent;
+}
+
+.eps-btn-outline:hover {
+    background-color: #e6f2ff;
+}
+
+.nav-tabs .nav-link.active {
+    color: #005b9f;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: bold;
+}
+
+.nav-tabs .nav-link {
+    color: #6c757d;
+}
+
+.info-group {
+    margin-bottom: 0.5rem;
+}

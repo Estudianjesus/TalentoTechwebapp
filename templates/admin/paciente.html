@@ -1,0 +1,41 @@
+{% extends "admin/admin_dashboard.html" %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div id="mensaje_alerta"></div> 
+    <h1>Gestión de Pacientes</h1>
+    <input type="text" id="busqueda" class="form-control mb-3" placeholder="Buscar paciente..." onkeyup="filtrarPacientes()">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo de Documento</th>
+                    <th>Número de Documento</th>
+                    <th>Zona</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="pacientes-table">
+                {% for paciente in pacientes %}
+                <tr id="paciente-{{ paciente.id }}">
+                    <td>{{ paciente.primer_nombre }} {{ paciente.primer_apellido }}</td>
+                    <td>{{ paciente.tipo_documento }}</td>
+                    <td>{{ paciente.numero_documento }}</td>
+                    <td>{{ paciente.zona }}</td>
+                    <td>
+                        <a href="{{ url_for('ver_paciente', id=paciente.id) }}" class="btn btn-info btn-sm">Ver</a>
+                        <a href="{{ url_for('editar_paciente', id=paciente.id) }}" class="btn btn-warning btn-sm">Editar</a>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarPaciente({{ paciente.id }})">Eliminar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    <script src="{{ url_for('static', filename='js/grud_admin/cargar_pacientes.js') }}"></script> 
+
+ {% endblock %}
+        

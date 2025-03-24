@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afíliate Al Contributivo</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+      
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container row g-0">
+            <!-- Imagen -->
+            <div class="col-lg-5 img-container">
+                <img class="img-fluid" src="img/contibitivo.webp" alt="Contributivo">
+            </div>
+            
+            <!-- Formulario -->
+            <div class="col-lg-7 form-section">
+                <h1 class="form-title">Afíliate Al Contributivo</h1>
+                
+                <form>
+                    <div class="mb-4">
+                        <label for="tipo_documento" class="form-label fw-bold">Tipo de Documento</label>
+                        <select id="tipo_documento" class="form-select">
+                            <option value="" disabled selected>Seleccione una opción</option>
+                            <option value="cc">Cédula de Ciudadanía</option>
+                            <option value="ti">Tarjeta de Identidad</option>
+                            <option value="ce">Cédula de Extranjería</option>
+                            <option value="pp">Pasaporte</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-floating mb-4">
+                        <input type="number" id="documentNumber" class="form-control" placeholder=" ">
+                        <label for="documentNumber">Número De Documento</label>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" id="name" class="form-control" placeholder=" ">
+                                <label for="name">Nombre</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" id="department" class="form-control" placeholder=" ">
+                                <label for="department">Departamento</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="tel" id="cellphone" class="form-control" placeholder=" ">
+                                <label for="cellphone">Celular</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="tel" id="phone" class="form-control" placeholder=" ">
+                                <label for="phone">Teléfono</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="email" id="email" class="form-control" placeholder=" ">
+                                <label for="email">Email</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" id="eps" class="form-control" placeholder=" ">
+                                <label for="eps">EPS Actual</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" id="empresa" class="form-control" placeholder=" ">
+                                <label for="empresa">Nombre de la Empresa</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" id="cargo" class="form-control" placeholder=" ">
+                                <label for="cargo">Cargo</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-floating mb-4">
+                        <input type="number" id="salario" class="form-control" placeholder=" ">
+                        <label for="salario">Salario</label>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./capdatos.js"></script>
+</body>
+</html>

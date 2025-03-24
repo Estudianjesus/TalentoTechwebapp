@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta General - Servicios Médicos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    
+    <style>
+       
+    </style>
+</head>
+<body>
+    <header class="position-fixed w-100 top-0 start-0 z-index-1050 bg-white shadow-sm main-header">
+        <div class="banner-container top-banner d-block text-center">
+            <marquee behavior="scroll" direction="left" scrollamount="5">
+                <i class="fas fa-map-marker-alt me-2"></i>Calle 123, Barrio Centro, Corozal, Sucre, Colombia 
+                <span class="mx-4">|</span> 
+                <i class="fas fa-phone-alt me-2"></i>304 542 0537
+            </marquee>
+        </div>
+    
+        <div class="container">
+            <div class="row align-items-center py-3">
+                <div class="col-3">
+                    <h1 class="m-0 fs-6 logo-text">
+                        <i class="fas fa-hospital me-2"></i>MediFlex
+                    </h1>
+                </div>
+    
+                <div class="col-lg-6 d-none d-lg-block">
+                    <nav class="navbar navbar-expand-lg justify-content-center">
+                        <ul class="nav justify-content-center">
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium text-secondary" href="/">Inicio</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium text-secondary" href="/nosotros">Nosotros</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-medium text-secondary" role="button" data-bs-toggle="dropdown">
+                                    Servicios
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Servicios Médicos</h6></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/urgencia">
+                                            <i class="fas fa-heartbeat me-2"></i>Urgencias 24/7
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/consulta_general">
+                                            <i class="fas fa-stethoscope me-2"></i>Consulta General
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Servicios Adicionales</h6></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/farmacia">
+                                            <i class="fas fa-pills me-2"></i>Farmacia
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium text-secondary" href="/contacto">Contacto</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                
+                <div class="col-9 col-lg-3 d-flex justify-content-end align-items-center">
+                    <div class="d-none d-lg-inline-flex gap-2">
+                        <button class="btn btn-primary-p px-4 py-2 rounded-pill" onclick="window.location.href='/portal'">
+                            <i class="fas fa-user-circle me-2"></i>Portal Pacientes
+                        </button>
+                        
+                    </div>
+                    <button class="navbar-toggler d-lg-none border-0 ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuMovil">
+                        <i class="fas fa-bars fs-4 text-primary"></i>
+                    </button>
+                </div>
+                </div>
+                </div>
+                <div class="header-border"></div>
+                </header>
+                
+                <!-- Menú lateral en móvil -->
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="menuMovil">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title text-primary">MediFlex</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/nosotros">Nosotros</a></li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Servicios</a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Servicios Médicos</h6></li>
+                                    <li><a class="dropdown-item" href="/urgencia"><i class="fas fa-heartbeat me-2"></i>Urgencias 24/7</a></li>
+                                    <li><a class="dropdown-item" href="/consulta_general"><i class="fas fa-stethoscope me-2"></i>Consulta General</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Servicios Adicionales</h6></li>
+                                    <li><a class="dropdown-item" href="/farmacia"><i class="fas fa-pills me-2"></i>Farmacia</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
+                        </ul>
+                        <hr>
+                        <a class="btn btn-primary w-100" href="/portal">Portal Pacientes</a>
+
+                    </div>
+                </div>
+                
+    <main>
+        <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+              <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+              <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
+              <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
+          </div>
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="{{ url_for('static', filename='img/perso1.png') }}" class="d-block w-100" alt="Consulta Médica">
+                <div class="carousel-caption d-md-block">
+                    <h5 class="display-5 fw-bold mb-3">Atención Médica Personalizada</h5>
+                    <p class="lead mb-4">Nuestros especialistas te brindan la mejor atención con diagnósticos precisos.</p>
+                    <button class="btn btn-primary btn-lg px-4">Agendar Consulta</button>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ url_for('static', filename='img/perosna2.webp') }}" class="d-block w-100" alt="Chequeo Médico">
+                <div class="carousel-caption d-md-block">
+                    <h5 class="display-5 fw-bold mb-3">Chequeos Médicos Completos</h5>
+                    <p class="lead mb-4">Realizamos exámenes preventivos para asegurar tu bienestar.</p>
+                    <button class="btn btn-primary btn-lg px-4">Ver Servicios</button>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ url_for('static', filename='img/perosna3.avif') }}" class="d-block w-100" alt="Servicios de Urgencia">
+                <div class="carousel-caption d-md-block">
+                    <h5 class="display-5 fw-bold mb-3">Urgencias 24/7</h5>
+                    <p class="lead mb-4">Contamos con un equipo de profesionales listos para atender emergencias.</p>
+                    <button class="btn btn-primary btn-lg px-4">Más Información</button>
+                </div>
+            </div>
+        </div>
+        
+          <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon"></span>
+          </button>
+      </div>
+
+      <section id="servicios" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 animate__animated animate__fadeInDown">Nuestros Servicios</h2>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card service-card h-100 scroll-reveal">
+                        <div class="card-body text-center">
+                            <div class="circle mb-3" style="pointer-events: none;">
+                                <i class="fas fa-user-md fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Consulta Médica General</h5>
+                            <p class="card-text">Evaluación completa de síntomas y diagnóstico preciso de enfermedades comunes.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card service-card h-100 scroll-reveal">
+                        <div class="card-body text-center">
+                            <div class="circle mb-3" style="pointer-events: none;">
+                                <i class="fas fa-heartbeat fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Control de Enfermedades Crónicas</h5>
+                            <p class="card-text">Seguimiento especializado para diabetes, hipertensión y asma.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card service-card h-100 scroll-reveal">
+                        <div class="card-body text-center">
+                        <div class="circle mb-3" style="pointer-events: none !important;">
+                            <i class="fas fa-shield-virus fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Salud Preventiva</h5>
+                            <p class="card-text">Chequeos regulares para mantener tu bienestar.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">¿Cuándo visitarnos?</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion" id="symptomsAccordion">
+                        <div class="accordion-item scroll-reveal">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                    <i class="fas fa-thermometer-half me-2"></i> Síntomas Generales
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#symptomsAccordion">
+                                <div class="accordion-body">
+                                    Fiebre, dolor de cabeza o malestar general persistente
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item scroll-reveal">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                    <i class="fas fa-lungs me-2"></i> Síntomas Respiratorios
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#symptomsAccordion">
+                                <div class="accordion-body">
+                                    Gripe, tos o dificultad leve para respirar
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item scroll-reveal">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                                    <i class="fas fa-lungs me-2"></i> Síntomas Respiratorios
+                                </button>
+                            </h2>
+                            <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#symptomsAccordion">
+                                <div class="accordion-body">
+                                    Gripe, tos o dificultad leve para respirar
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>    
+
+    <footer class="footer-gradient text-white py-5 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Servicios -->
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Servicios</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Citas Médicas</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Urgencias</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Laboratorio Clínico</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Portal del Paciente</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">PQR</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Trabaja con Nosotros</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Contacto</h5>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-warning"></i>
+                            (123) 456-7890
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-warning"></i>
+                            contacto@eps.com
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-warning"></i>
+                            Calle Principal #123
+                        </li>
+                    </ul>
+                    <div class="emergency-section bg-white bg-opacity-10 p-3 rounded">
+                        <h6 class="text-warning">
+                            <i class="fas fa-ambulance me-2"></i>
+                            Línea de Emergencias 24/7
+                        </h6>
+                        <p class="mb-0 fs-5">018000 123 456</p>
+                    </div>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Síguenos</h5>
+                    <div class="mb-4">
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white fs-4">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="bg-black bg-opacity-10 mt-4">
+            <div class="container py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start">
+                        <small>© 2025 EPS. Todos los derechos reservados.</small>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="#" class="footer-link text-white me-3">Términos y Condiciones</a>
+                        <a href="#" class="footer-link text-white">Política de Privacidad</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/banner.js') }}" ></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Scroll reveal animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
+            
+            const revealOnScroll = function() {
+                scrollRevealElements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    
+                    if (elementTop < windowHeight - 100) {
+                        element.classList.add('active');
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', revealOnScroll);
+            revealOnScroll(); 
+        });
+    </script>
+</body>
+</html>

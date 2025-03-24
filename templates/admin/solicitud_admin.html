@@ -1,0 +1,60 @@
+{% extends "admin/admin_dashboard.html" %}
+
+{% block content %}
+<div class="container py-5 mt-5" >
+    <h1>Solicitudes de Afiliación</h1>
+
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo de Documento</th>
+                        <th>Número de Documento</th>
+                        <th>Zona</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for solicitud in solicitudes %}
+                    <tr id="solicitud-{{ solicitud.id }}">
+                        <td>{{ solicitud.primer_nombre }} {{ solicitud.primer_apellido }}</td>
+                        <td>{{ solicitud.tipo_documento }}</td>
+                        <td>{{ solicitud.numero_documento }}</td>
+                        <td>{{ solicitud.zona }}</td>
+                        <td>
+                            {% if solicitud.estado == 'Pendiente' %}
+                            <span class="estado-pendiente">{{ solicitud.estado }}</span>
+                            {% elif solicitud.estado == 'Aprobada' %}
+                            <span class="estado-aprobado">{{ solicitud.estado }}</span>
+                            {% elif solicitud.estado == 'Rechazada' %}
+                            <span class="estado-rechazado">{{ solicitud.estado }}</span>
+                            {% else %}
+                            {{ solicitud.estado }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if solicitud.estado == 'Pendiente' %}
+                            <div class="acciones">
+                                <button class="btn-aceptar" onclick="aceptarSolicitud({{ solicitud.id }})">Aceptar</button>
+                                <button class="btn-rechazar" onclick="rechazarSolicitud({{ solicitud.id }})">Rechazar</button>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">No se pueden cambiar</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/grud_admin/solicitud.js') }}"></script> 
+
+
+{% endblock %}

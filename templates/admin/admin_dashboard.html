@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPS Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome para iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adminsud.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/diseño_soli.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admintrador.css') }}">
+    
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="container-fluid">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-xl-2 sidebar d-lg-block" id="sidebar">
+                <div class="sidebar-brand">
+                    <h2>EPS<span>Admin</span></h2>
+                </div>
+                
+                <!-- Profile Section -->
+                <div class="profile-section">
+                    <img src="/EPS/img/farme.avif" alt="Foto de perfil" class="profile-img mb-3"> 
+                    <div id="perfilnombre">Miguel S.</div>
+                    <p class="text-muted">Administrador General</p>
+                </div>
+                
+                <!-- Menu -->
+                <div class="sidebar-header">Menú Principal</div>
+                <ul class="sidebar-menu nav flex-column">
+                    <li class="nav-item">
+                        <a href="{{ url_for('ver_solicitudes') }}" class="nav-link active">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Sistema MEDIFLEX</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a  href="{{ url_for('ver_pacientes') }}"  class="nav-link">
+                            <i class="fas fa-user-md"></i>
+                            <span>Gestión de afiliados</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a  href="{{ url_for('ver_pacientes') }}"  class="nav-link">
+                            <i class="fas fa-user-md"></i>
+                            <span>Gestión de Citas Médicas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Gestión de Farmacia</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a  class="nav-link">
+                            <i class="fas fa-pills"></i>
+                            <span>Soporte y Atención</span>
+                        </a>
+                        
+                    </li>
+                </ul>
+                
+                <div class="sidebar-header">Administración</div>
+                <ul class="sidebar-menu nav flex-column">
+                    <li class="nav-item">
+                        <a href="#serviciosAdmin" class="nav-link" data-bs-toggle="collapse">
+                            <i class="fas fa-tools"></i>
+                            <span>Usuarios</span>
+                        </a>  
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Configuración</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9 col-xl-10 content-wrapper ms-lg-auto">
+                <!-- Header -->
+                <header class="main-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <button class="btn btn-primary d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        {% if current_user.rol in ['Administrador', 'Subadministrador'] %}
+                            <span class="d-none d-md-inline-block ms-3"><span class="badge eps-badge-role">{{ current_user.rol }}</span></span>
+                        {% endif %}
+                    </div>
+                    <div class="user-dropdown dropdown">
+                        <a class="dropdown-toggle text-decoration-none d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="nombreapelido" class="me-2">{{ current_user.primer_nombre }} {{ current_user.primer_apellido }}</span>
+                            <i class="fas fa-user-circle fa-lg text-primary"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('perfil') }}" >
+                                    <i class="fas fa-user-edit me-2"></i> Editar Perfil
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a href="{{ url_for('logout') }}" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </header>
+
+                <main>
+                    {% block content%}
+                     {% endblock %}
+
+                     
+                </main>
+                
+    
+            </div>
+        </div>
+    </div>
+
+
+
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <script src="{{ url_for('static', filename='js/funciones_admin.js') }}"></script> 
+     <script src="../static/js/cargar_Usuadmin.js" ></script>  
+     <script src="../static/js/cargar_afsudsiado.js"></script>  
+    <script src="../static/js/session.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>                        

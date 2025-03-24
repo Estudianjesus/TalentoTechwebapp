@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGestión - Portal de Afiliados</title>
+      <!-- Bootstrap CSS -->
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- Chart.js para gráficos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<!-- Toastify CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<!-- Toastify JS -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<!-- Estilos y scripts personalizados -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/estilos_usuario/perfil.css') }}">
+
+
+
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Premium con Experiencia Mejorada -->
+        <header class="header">
+            <div class="header-content">
+                <div class="brand-section">
+                    <div class="logo-medi">
+                        <div class="logo-icon-circle">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                    </div>
+                    <div class="brand-text">
+                        <h1 class="brand-name">MediGestión</h1>
+                        <p class="brand-slogan">Tu salud es nuestra prioridad</p>
+                    </div>
+                </div>
+                
+                <!-- Navegación principal en el header -->
+                <nav class="main-nav">
+                    <ul class="main-nav-list">
+                        <li class="main-nav-item">
+                            <a href="{{ url_for('Inicio') }}" class="main-nav-link active">
+                                <i class="fas fa-home"></i> Inicio
+                            </a>
+                        </li>
+                        <li class="main-nav-item">
+                            <a href="#" class="main-nav-link">
+                                <i class="fas fa-stethoscope"></i> Médicos
+                            </a>
+                        </li>
+                        <li class="main-nav-item">
+                            <a href="#" class="main-nav-link">
+                                <i class="fas fa-hospital"></i> Centros
+                            </a>
+                        </li>
+                        <li class="main-nav-item">
+                            <a href="#" class="main-nav-link">
+                                <i class="fas fa-bell"></i> Notificaciones
+                                <span class="nav-badge">3</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <!-- Menú de usuario mejorado -->
+                <div class="user-section dropdown" id="userSection">
+                    <div class="user-menu-trigger d-flex align-items-center" id="userMenuTrigger">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="user-name" id="nombreapellido" >{{ paciente.primer_nombre | upper }}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.8;"></i>
+                    </div>
+                
+                    <div class="user-dropdown dropdown-menu">
+                        <div class="user-dropdown-header">
+                            <h4 class="user-dropdown-title" id="userDropdownName">{{ paciente.primer_nombre | upper ~ ' ' ~ paciente.primer_apellido | upper }}</h4>
+                            <p class="user-dropdown-subtitle" id="userDropdownId">{{paciente.tipo_documento ~ ':' ~ paciente.numero_documento }}</p>
+                        </div>
+                        <div class="user-dropdown-body">
+                            <a href="{{ url_for('perfil_usuario') }}" class="user-menu-link dropdown-item">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Mi Perfil</span>
+                            </a>
+                            <a href="#" class="user-menu-link dropdown-item d-flex justify-content-between">
+                                <span><i class="fas fa-bell"></i> Notificaciones</span>
+                                <span class="ms-auto badge bg-danger rounded-pill">3</span>
+                            </a>
+                        </div>
+                        <div class="user-dropdown-footer">
+                            <a href="{{ url_for('salir') }}" class="logout-btn dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Cerrar Sesión</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Navegación de pestañas mejorada -->
+        
+
+        <div class="container py-5">
+            <div class="patient-card bg-white mb-4">
+                <!-- Información del usuario -->
+                <div class="profile-header text-center text-white d-flex ">
+                    <div class="profile-avatar mx-3">
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <input type="hidden" name="id" id="usuario_id" value="{{ paciente.usuario_id }}">
+                            
+                            <!-- Imagen de perfil o icono por defecto -->
+                            {% if paciente.imagen_usuario %}
+                            <img id="previewImagen" 
+                                 src="{{ url_for('static', filename=paciente.imagen_usuario) }}" 
+                                 alt="Imagen de perfil" 
+                                 style="max-width: 100px; border-radius: 50px; cursor: pointer;">
+                        {% else %}
+                            <div style="position: relative; display: inline-block; cursor: pointer;">
+                                <img id="previewImagen" 
+                                     src="{{ url_for('static', filename='img/defaul.png') }}" 
+                                     alt="Imagen por defecto" 
+                                     style="max-width: 100px; border-radius: 50px;">
+                                <h2 style="position: absolute; 
+                                           top: 50%; 
+                                           left: 50%; 
+                                           transform: translate(-50%, -50%); 
+                                           background: rgba(0, 0, 0, 0.5); 
+                                           color: white; 
+                                           padding: 5px 10px; 
+                                           border-radius: 10px;
+                                           font-size: 12px;">
+                                    Subir foto
+                                </h2>
+                            </div>
+                        {% endif %}
+                        
+                            <!-- Input oculto para subir imagen -->
+                            <input type="file" id="fileInput" name="imagen_usuario" accept="image/*" hidden>
+                        
+                            <!-- Mensaje de respuesta -->
+                            <div id="mensaje"></div>
+                        </form>
+                    
+                    </div>
+                
+                    <div class="profile-avatar mx-3">
+                        <h2 class="fw-bold mb-1 mt-4">
+                            {{ (paciente.primer_nombre ~ ' ' ~ paciente.primer_apellido | default('')) | upper }}
+                        </h2>
+                    </div>
+                   
+                   
+                </div>
+                
+                <div class="p-4">
+                    <!-- DATOS PERSONALES -->
+                    <div class="section-container personal-data mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="section-title flex-grow-1">
+                                <i class="fas fa-id-card"></i>
+                                <h3 class="fs-5 mb-0 fw-bold">Información Personal</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="section-view" id="datos-personales-view">
+                            <div class="row g-3">
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Nombres</div>
+                                        <div class="data-value">
+                                            {{ (paciente.primer_nombre ~ ' ' ~ paciente.segundo_nombre | default('No registrado')) | upper }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Apellidos</div>
+                                        <div class="data-value">
+                                            {{ (paciente.primer_apellido ~ ' ' ~ paciente.segundo_apellido | default('No registrado')) | upper }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Tipo: Documento</div>
+                                        <div class="data-value">
+                                            {{ paciente.tipo_documento ~ ':' ~ paciente.numero_documento | default('No registrado') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Fecha de expedición</div>
+                                        <div class="data-value">
+                                            {{ paciente.fecha_expedicion | default('No registrado') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Fecha de Nacimiento</div>
+                                        <div class="data-value">
+                                            {{ paciente.fecha_nacimiento | default('No registrado') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Género</div>
+                                        <div class="data-value">
+                                            {{ paciente.sexo | default('No registrado') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- DATOS DE CONTACTO -->
+                    <div class="section-container contact-data mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="section-title flex-grow-1">
+                                <i class="fas fa-address-book"></i>
+                                <h3 class="fs-5 mb-0 fw-bold">Datos de contacto</h3>
+                            </div>
+                            <button class="btn edit-btn" data-section="datos-contacto">
+                                <i class="fas fa-edit me-1"></i>EDITAR
+                            </button>
+                        </div>
+                        
+                        <div class="section-view" id="datos-contacto-view">
+                            <div class="row g-3">
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Teléfono</div>
+                                        <div class="data-value " id="view-telefono">
+                                            <i class="fas fa-phone-alt me-2 text-info"></i>
+                                            {{ paciente.telefono | default('No registrado') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Correo electrónico</div>
+                                        <div class="data-value" id="view-correo">
+                                            <i class="fas fa-envelope me-2 text-info"></i>
+                                            {{ paciente.correo | default('No registrado') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12 col-lg-4 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Dirección</div>
+                                        <div class="data-value" id="view-direccion" >
+                                            <i class="fas fa-map-marker-alt me-2 text-info"></i>
+                                            {{ paciente.direccion | default('No registrado') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulario de edición -->
+                        <form  class="section-form d-none" id="datos-contacto-form" data-id="{{paciente.usuario_id }}" method="POST" action="">
+                            <input type="hidden" name="id" value="{{ paciente.usuario_id }}">
+                            <div class="form-container">
+                                <div class="row g-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Teléfono:</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone-alt text-info"></i></span>
+                                            <input type="tel" class="form-control" name="telefono" value="{{ paciente.telefono|default('nada') }}" data-field="telefono">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Correo electrónico:</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-envelope text-info"></i></span>
+                                            <input type="email" class="form-control" name="correo" value="{{ paciente.correo|default('') }}" data-field="correo">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label fw-bold">Dirección:</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-map-marker-alt text-info"></i></span>
+                                            <input type="text" class="form-control" name="direccion" value="{{ paciente.direccion|default('') }}" data-field="direccion">
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-3 text-end">
+                                        <button type="button" class="btn btn-light me-2 cancel-btn">Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="mensaje-box" style="display: none;"></div>
+                    
+                    <!-- DATOS DE CUENTA -->
+                    <div class="section-container account-data">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="section-title flex-grow-1">
+                                <i class="fas fa-user-lock"></i>
+                                <h3 class="fs-5 mb-0 fw-bold">Seguridad de tu cuenta</h3>
+                            </div>
+                            <button class="btn edit-btn" data-section="datos-cuenta">
+                                <i class="fas fa-edit me-1"></i>EDITAR
+                            </button>
+                        </div>
+                        
+                        <div class="section-view" id="datos-cuenta-view">
+                            <div class="row g-3">
+                                <div class="col-md-6 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Contraseña</div>
+                                        <div class="data-value">
+                                            <i class="fas fa-lock me-2 text-warning"></i>
+                                            ••••••••
+                                            <span class="badge bg-light text-dark ms-2">Última actualización: hace 30 días</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="data-label-card">
+                                        <div class="data-label">Seguridad de la cuenta</div>
+                                        <div class="data-value">
+                                            <i class="fas fa-shield-alt me-2 text-success"></i>
+                                            Activa
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulario de edición -->
+                        <form  action="/actualizar_paciente" class="section-form d-none" id="datos-cuenta-form" data-id="{{paciente.usuario_id }}" >
+                            <input type="hidden" name="id" value="{{ paciente.usuario_id }}">
+                            <div class="form-container">
+                                <div class="row g-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Contraseña actual:</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock text-warning"></i></span>
+                                            <input type="password" class="form-control" name="current_password" placeholder="Contraseña actual">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Nueva contraseña:</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-key text-warning"></i></span>
+                                            <input type="password" class="form-control" name="password" placeholder="Nueva contraseña" data-field="password">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Confirmar contraseña:</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-check-double text-warning"></i></span>
+                                            <input type="password" class="form-control" name="password_confirm" placeholder="Confirmar contraseña">
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-3 text-end">
+                                        <button type="button" class="btn btn-light me-2 cancel-btn">Cancelar</button>
+                                        <button type="submit" class="btn text-white" style="background-color: var(--warning);">Actualizar contraseña</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+<script src="{{ url_for('static', filename='js/usuario/funcionalidad.js') }}"></script> 
+<script src="{{ url_for('static', filename='js/usuario/abrir_perfil.js') }}"></script> 
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,406 @@
+:root {
+    --primary: #4a6fa5;
+    --secondary: #47b39d;
+    --tertiary: #ffc857;
+    --danger: #e84855;
+    --dark: #0b3954;
+    --light: #f8f9fa;
+    --gradient-1: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --gradient-2: linear-gradient(135deg, #13f1fc 0%, #0470dc 100%);
+    --gradient-3: linear-gradient(135deg, #f83600 0%, #f9d423 100%);
+}
+
+body {
+    background-color: #f0f4f8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    background: var(--gradient-1);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::after {
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.header::before {
+    content: "";
+    position: absolute;
+    top: -30px;
+    left: -30px;
+    width: 150px;
+    height: 150px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.service-bubble {
+    background: white;
+    border-radius: 20px;
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+.service-bubble:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.service-bubble .icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.service-bubble.primary {
+    background: var(--gradient-1);
+    color: white;
+}
+
+.service-bubble.secondary {
+    background: var(--gradient-2);
+    color: white;
+}
+
+.service-bubble.tertiary {
+    background: var(--gradient-3);
+    color: white;
+}
+
+.service-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.service-card .card-title {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.nav-tabs {
+    border: none;
+    margin-bottom: 20px;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 30px;
+    background: white;
+    color: var(--dark);
+    padding: 10px 20px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    background: rgba(74, 111, 165, 0.1);
+}
+
+.nav-tabs .nav-link.active {
+    background: var(--primary);
+    color: white;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.bottom-nav-item {
+    text-align: center;
+    color: var(--dark);
+    font-size: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.bottom-nav-item .icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.bottom-nav-item:hover, .bottom-nav-item.active {
+    color: var(--primary);
+}
+
+.badge-notification {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--danger);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-pill.approved {
+    background: rgba(71, 179, 157, 0.2);
+    color: var(--secondary);
+}
+
+.status-pill.pending {
+    background: rgba(255, 200, 87, 0.2);
+    color: var(--tertiary);
+}
+
+.status-pill.denied {
+    background: rgba(232, 72, 85, 0.2);
+    color: var(--danger);
+}
+
+.quick-action {
+    padding: 15px;
+    border-radius: 15px;
+    background: white;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.quick-action:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.quick-action .icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.medication-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.medication-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.medication-item .icon {
+    width: 50px;
+    height: 50px;
+    background: #f0f4f8;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 24px;
+}
+
+.progress {
+    height: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.appointment-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.appointment-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.appointment-item .appointment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.appointment-item .appointment-date {
+    background: var(--primary);
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.appointment-item .appointment-date .day {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.appointment-item .appointment-date .month {
+    font-size: 14px;
+}
+
+.floating-button {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--gradient-1);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.floating-button:hover {
+    transform: scale(1.1);
+}
+
+/* Hide bottom nav on desktop, show it on mobile */
+@media (min-width: 768px) {
+    .bottom-nav {
+        display: none;
+    }
+    
+    body {
+        padding-bottom: 0;
+    }
+}
+
+@media (max-width: 767px) {
+    body {
+        padding-bottom: 70px;
+    }
+    
+    .app-container {
+        padding: 10px;
+    }
+}
+
+.calendar-date {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    margin: 2px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.calendar-date:hover {
+    background-color: #e9ecef;
+}
+
+.calendar-date.today {
+    background-color: var(--primary);
+    color: white;
+}
+
+.calendar-date.has-appointment {
+    background-color: var(--tertiary);
+    color: white;
+}
+
+.benefit-card {
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.benefit-card .card-body {
+    padding: 20px;
+}
+
+.benefit-card .card-img-top {
+    height: 120px;
+    object-fit: cover;
+}
+
+.welcome-pill {
+    background: rgba(71, 179, 157, 0.2);
+    color: var(--secondary);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+

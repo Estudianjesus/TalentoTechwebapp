@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediGestión - Portal de Afiliados</title>
+    <!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Chart.js para gráficos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<!-- Toastify para notificaciones -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<!-- Estilos y scripts personalizados en Flask -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}">
+<script src="{{ url_for('static', filename='js/portalafiliado.js') }}"></script>
+
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="row align-items-center">
+                <div class="col-9">
+                    <span class="welcome-pill">¡Bienvenido!</span>
+                    <h2 id="elemento"></h2>
+                    <p>Tu salud es nuestra prioridad</p>
+                </div>
+                <div class="col-3 text-end">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" 
+                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="nombreapellido"></span> <!-- Nombre dinámico -->
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end " aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Main Navigation Tabs -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Inicio</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" role="tab" aria-controls="appointments" aria-selected="false">Mis Citas</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="medications-tab" data-bs-toggle="tab" data-bs-target="#medications" type="button" role="tab" aria-controls="medications" aria-selected="false">Medicamentos</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">Mi Historial</button>
+            </li>
+        </ul>
+        
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Home Tab -->
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action text-center p-4 bg-light border rounded shadow" data-bs-toggle="collapse" data-bs-target="#formularioCita">
+                            <div class="fs-1">📅</div>
+                            <p class="mt-2">Agendar Cita</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action">
+                            <div class="icon">💊</div>
+                            <p>Medicamentos</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action">
+                            <div class="icon">📋</div>
+                            <p>Autorizaciones</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="quick-action">
+                            <div class="icon">👨‍⚕️</div>
+                            <p>Mis Médicos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            </div>
+
+    </div>
+
+    <main class="container mt-5">
+        <section class="card shadow-lg p-4 collapse" id="formularioCita">
+            <h2 class="text-center mb-4">Agendar Cita</h2>
+            <form id="formCita">
+                <div class="row g-3">
+                    <!-- Tipo de Documento -->
+                    <div class="col-md-6">
+                        <label for="tipo_documento" class="form-label">Tipo de Documento</label>
+                        <input type="text" class="form-control" id="tipo_documento" name="tipo_documento" readonly required>
+                    </div>
+                    <!-- Número de Documento -->
+                    <div class="col-md-6">
+                        <label for="documentNumber" class="form-label">Número de Documento</label>
+                        <input type="text" class="form-control" id="documentNumber" name="documentNumber" readonly required>
+                    </div>
+                    <!-- Nombre y Segundo Nombre -->
+                    <div class="col-md-6">
+                        <label for="nombre" class="form-label">Primer Nombre</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" readonly required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="segundo_nombre" class="form-label">Segundo Nombre</label>
+                        <input type="text" class="form-control" id="segundo_nombre" name="segundo_nombre" readonly>
+                    </div>
+                    <!-- Apellido y Segundo Apellido -->
+                    <div class="col-md-6">
+                        <label for="apellido" class="form-label">Primer Apellido</label>
+                        <input type="text" class="form-control" id="apellido" name="apellido" readonly required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="segundo_apellido" class="form-label">Segundo Apellido</label>
+                        <input type="text" class="form-control" id="segundo_apellido" name="segundo_apellido" readonly>
+                    </div>
+                    <!-- Tipo de Cita -->
+                    <div class="col-md-6">
+                        <label for="tipo_cita" class="form-label">Tipo de Cita</label>
+                        <select class="form-select" id="tipo_cita" name="tipo_cita" required>
+                            <option value="Medicina General">Medicina General</option>
+                            <option value="Odontología">Odontología</option>
+                            <option value="Pediatría">Pediatría</option>
+                        </select>
+                    </div>
+                    <!-- Fecha y Hora -->
+                    <div class="col-md-3">
+                        <label for="fecha" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="hora" class="form-label">Hora</label>
+                        <input type="time" class="form-control" id="hora" name="hora" required>
+                    </div>
+                    <!-- Motivo -->
+                    <div class="col-12">
+                        <label for="motivo" class="form-label">Motivo</label>
+                        <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
+                    </div>
+                </div>
+                <!-- Botón de Enviar -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary w-100">Agendar Cita</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    
+    <script src="../../static/js/portalafiliado.js"></script>
+    <script src="../../static/js/cerrar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

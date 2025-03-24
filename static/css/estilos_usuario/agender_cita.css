@@ -1,0 +1,418 @@
+:root {
+    --primary: #3a86ff;
+    --primary-dark: #2667cc;
+    --primary-light: #e1ebff;
+    --secondary: #8338ec;
+    --accent: #ff006e;
+    --success: #06d6a0;
+    --warning: #ffbe0b;
+    --danger: #ef476f;
+    --text-dark: #212529;
+    --text-muted: #6c757d;
+    --grey-light: #f8f9fa;
+    --grey-medium: #e9ecef;
+    --white: #ffffff;
+    --shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.05);
+    --border-radius: 12px;
+}
+
+body {
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f9fafd;
+    color: var(--text-dark);
+    line-height: 1.6;
+    /* Patrón de fondo más sutil con gradientes */
+    background: linear-gradient(135deg, #f9fafd 0%, #f0f5fa 100%);
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+/* Header con gradiente */
+.header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    box-shadow: var(--shadow);
+}
+
+.brand-section .logo-icon-circle {
+    background-color: var(--white);
+    color: var(--primary);
+}
+
+.brand-name {
+    color: var(--white);
+}
+
+.brand-slogan {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.main-nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    transition: all 0.3s ease;
+}
+
+.main-nav-link:hover, .main-nav-link.active {
+    color: var(--white);
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-badge {
+    background-color: var(--accent);
+}
+
+.user-section {
+    color: var(--white);
+}
+
+.user-avatar {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.card {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    background-color: var(--white);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.form-container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 4rem auto !important;
+    background-color: transparent !important;
+}
+
+.form-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    margin-bottom: 0;
+    max-width: 1200px;
+}
+
+.form-header h2 {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.form-control, .form-select {
+    border-radius: calc(var(--border-radius) / 2);
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--grey-medium);
+    transition: all 0.3s;
+    background-color: var(--grey-light);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(58, 134, 255, 0.15);
+    background-color: var(--white);
+}
+
+.option-card {
+    cursor: pointer;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    background: var(--white);
+    border: 2px solid var(--grey-medium);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.option-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.option-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-light);
+}
+
+.option-card:hover:before {
+    opacity: 1;
+}
+
+.option-card.selected {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+.option-card.selected:before {
+    opacity: 1;
+}
+
+.option-icon {
+    font-size: 2.25rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+.option-card.selected .option-icon {
+    color: var(--primary);
+}
+
+.option-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+    text-align: center;
+}
+
+/* Botones de fecha y hora con efecto hover */
+#dateOptions .btn, #timeOptions .btn {
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    margin: 0.25rem;
+    border: 1px solid var(--grey-medium);
+    background-color: var(--white);
+    color: var(--text-dark);
+}
+
+#dateOptions .btn:hover, #timeOptions .btn:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary);
+}
+
+#dateOptions .btn.selected, #timeOptions .btn.selected {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+    box-shadow: 0 4px 8px rgba(58, 134, 255, 0.25);
+}
+
+/* Selector de fecha con estilo */
+#datePicker {
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--grey-medium);
+    box-shadow: var(--shadow-sm);
+    font-weight: 500;
+}
+
+#datePicker:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(58, 134, 255, 0.15);
+}
+
+/* Resumen de cita */
+.summary-card {
+    background-color: var(--primary-light);
+    border-left: 4px solid var(--primary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.summary-title {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    position: relative;
+    display: inline-block;
+}
+
+.summary-title:after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 50%;
+    height: 2px;
+    background-color: var(--accent);
+}
+
+/* Indicador de pasos mejorado */
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+    margin-top: 1.5rem;
+    position: relative;
+}
+
+.step-indicator:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 15%;
+    right: 15%;
+    height: 2px;
+    background-color: var(--grey-medium);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--grey-medium);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin: 0 10px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.step.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    box-shadow: 0 4px 8px rgba(58, 134, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.step.completed {
+    background-color: var(--success);
+    color: white;
+}
+
+/* Botones principales */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    border-color: var(--primary);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(58, 134, 255, 0.25);
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+    border-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(58, 134, 255, 0.3);
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, var(--success) 0%, #04b389 100%);
+    border-color: var(--success);
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(6, 214, 160, 0.25);
+    border-radius: var(--border-radius);
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    background: linear-gradient(135deg, #04b389 0%, #039e78 100%);
+    border-color: #04b389;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(6, 214, 160, 0.3);
+}
+
+.btn-outline-secondary {
+    color: var(--text-muted);
+    border-color: var(--grey-medium);
+    border-radius: var(--border-radius);
+    transition: all 0.3s;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--grey-light);
+    color: var(--text-dark);
+    transform: translateY(-2px);
+}
+
+/* Mejorar el diseño del modal */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--success) 0%, #04b389 100%);
+    color: white;
+    padding: 1.5rem;
+    border-bottom: none;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Añadir animaciones de efecto */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-content {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+/* Mejoras responsivas */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1rem;
+        margin: 1rem;
+    }
+    
+    .option-card {
+        padding: 1rem;
+    }
+    
+    .step {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .option-icon {
+        font-size: 1.75rem;
+    }
+}

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nosotros</title>
+<!-- CSS personalizado -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<!-- Favicon -->
+<link rel="shortcut icon" href="{{ url_for('static', filename='img/docto4.jpg') }}" type="image/x-icon">
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- FontAwesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- AOS (Animate On Scroll) -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+<body>
+    <header class="position-fixed w-100 top-0 start-0 z-index-1050 bg-white shadow-sm main-header">
+        <div class="banner-container top-banner d-block text-center">
+            <marquee behavior="scroll" direction="left" scrollamount="5">
+                <i class="fas fa-map-marker-alt me-2"></i>Calle 123, Barrio Centro, Corozal, Sucre, Colombia 
+                <span class="mx-4">|</span> 
+                <i class="fas fa-phone-alt me-2"></i>304 542 0537
+            </marquee>
+        </div>
+    
+        <div class="container">
+            <div class="row align-items-center py-3">
+                <div class="col-3">
+                    <h1 class="m-0 fs-6 logo-text">
+                        <i class="fas fa-hospital me-2"></i>MediFlex
+                    </h1>
+                </div>
+    
+                <div class="col-lg-6 d-none d-lg-block">
+                    <nav class="navbar navbar-expand-lg justify-content-center">
+                        <ul class="nav justify-content-center">
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium text-secondary" href="/">Inicio</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium text-secondary" href="/nosotros">Nosotros</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-medium text-secondary" role="button" data-bs-toggle="dropdown">
+                                    Servicios
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Servicios Médicos</h6></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/urgencia">
+                                            <i class="fas fa-heartbeat me-2"></i>Urgencias 24/7
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/consulta_general">
+                                            <i class="fas fa-stethoscope me-2"></i>Consulta General
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Servicios Adicionales</h6></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/farmacia">
+                                            <i class="fas fa-pills me-2"></i>Farmacia
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium text-secondary" href="/contacto">Contacto</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                
+                <div class="col-9 col-lg-3 d-flex justify-content-end align-items-center">
+                    <div class="d-none d-lg-inline-flex gap-2">
+                        <button class="btn btn-primary-p px-4 py-2 rounded-pill" onclick="window.location.href='/portal'">
+                            <i class="fas fa-user-circle me-2"></i>Portal Pacientes
+                        </button>
+                        
+                    </div>
+                    <button class="navbar-toggler d-lg-none border-0 ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuMovil">
+                        <i class="fas fa-bars fs-4 text-primary"></i>
+                    </button>
+                </div>
+                </div>
+                </div>
+                <div class="header-border"></div>
+                </header>
+                
+                <!-- Menú lateral en móvil -->
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="menuMovil">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title text-primary">MediFlex</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/nosotros">Nosotros</a></li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Servicios</a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Servicios Médicos</h6></li>
+                                    <li><a class="dropdown-item" href="/urgencia"><i class="fas fa-heartbeat me-2"></i>Urgencias 24/7</a></li>
+                                    <li><a class="dropdown-item" href="/consulta_general"><i class="fas fa-stethoscope me-2"></i>Consulta General</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Servicios Adicionales</h6></li>
+                                    <li><a class="dropdown-item" href="/farmacia"><i class="fas fa-pills me-2"></i>Farmacia</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
+                        </ul>
+                        <hr>
+                        <a class="btn btn-primary w-100" href="/portal">Portal Pacientes</a>
+
+                    </div>
+                </div>
+                
+
+    <div class="header-curve">
+        <div class="gradient-overlay"></div>
+        <div class="container pt-5">
+            <h1 class="overlay-text display-4 mb-4">Nosotros</h1>
+        </div>
+        <div class="curve"></div>
+    </div>
+
+    <main class="container mt-5">
+        <section class="row mb-5">
+            <article class="col-md-6" data-aos="fade-right" data-aos-offset="100" data-aos-duration="1200">
+                <h2 class="text-primary mb-4">Misión</h2>
+                <p class="lead">Gestionar que la experiencia laboral sea más equitativa y facilitar una experiencia de reclutamiento sencilla y sin tanta vuelta.</p>
+            </article>
+            <article class="col-md-6" data-aos="fade-left" data-aos-offset="100" data-aos-duration="1200">
+                <h2 class="text-success mb-4">Visión</h2>
+                <p class="lead">En el 2025, consolidar una marca y ser reconocidos en la región Centro Americana como la SAS más ágil y humana de servicio de vista favorable para sus afiliados con un alto nivel de marca y satisfacción a nuestros asociados.</p>
+            </article>
+        </section>
+        
+        <section class="mb-5" data-aos="fade-up" data-aos-duration="1200">
+            <h2 class="text-primary mb-4">Reseña Histórica</h2>
+            <p>Desde el 2020, cuando el Sr. Sebastián Castro comenzó desde casa con solo dos personas en Guatemala. Su experiencia en el mercado laboral asiático impulsó un modelo de emprendimiento innovador, estableciendo las bases para lograr una alta participación en la región.</p>
+        </section>
+        
+        <section class="row mb-5">
+            <article class="col-md-6" data-aos="zoom-in" data-aos-duration="1200">
+                <h2 class="text-primary mb-4">Valores</h2>
+                <ul class="list-unstyled">
+                    <li class="values-item"><h5> Respeto</h5></li>
+                    <li class="values-item"><h5> Honestidad</h5></li>
+                    <li class="values-item"><h5> Transparencia</h5></li>
+                    <li class="values-item"><h5> Compromiso</h5></li>
+                    <li class="values-item"><h5> Ética</h5></li>
+                </ul>
+            </article>
+            <article class="col-md-6" data-aos="zoom-in" data-aos-duration="1200" data-aos-delay="200">
+                <h2 class="text-primary mb-4">Identidad Corporativa</h2>
+                <ul class="list-unstyled">
+                    <li class="mb-3">• Somos únicos y pioneros, acompañamos a la vida empresarial con valores sólidos.</li>
+                    <li class="mb-3">• Nuestra experiencia en el mercado nos diferencia, compartimos éxitos laborales.</li>
+                    <li class="mb-3">• Nos enfocamos en lo humano, priorizando la experiencia de nuestros usuarios.</li>
+                </ul>
+            </article>
+        </section>
+        
+    </main>
+    <footer class="footer-gradient text-white py-4">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Servicios -->
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Servicios</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Citas Médicas</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Urgencias</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Laboratorio Clínico</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Portal del Paciente</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">PQR</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="footer-link text-white">Trabaja con Nosotros</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Contacto</h5>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-warning"></i>
+                            (123) 456-7890
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-warning"></i>
+                            contacto@eps.com
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-warning"></i>
+                            Calle Principal #123
+                        </li>
+                    </ul>
+                    <div class="emergency-section bg-white bg-opacity-10 p-3 rounded">
+                        <h6 class="text-warning">
+                            <i class="fas fa-ambulance me-2"></i>
+                            Línea de Emergencias 24/7
+                        </h6>
+                        <p class="mb-0 fs-5">018000 123 456</p>
+                    </div>
+                </section>
+
+                <section class="col-md-3">
+                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Síguenos</h5>
+                    <div class="mb-4">
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white me-3 fs-4">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon text-white fs-4">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="bg-black bg-opacity-10 mt-4">
+            <div class="container py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start">
+                        <small>© 2025 EPS. Todos los derechos reservados.</small>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="#" class="footer-link text-white me-3">Términos y Condiciones</a>
+                        <a href="#" class="footer-link text-white">Política de Privacidad</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+   <script  src="{{ url_for('static', filename='js/banner.js') }}"></script>
+   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+   <script>
+    AOS.init();
+</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
