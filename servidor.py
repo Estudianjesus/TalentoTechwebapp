@@ -12,11 +12,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
 from database import db
-from models import Cita, solicitudes_afiliacion, Usuario, Paciente
+from models import Cita, Medicamento, solicitudes_afiliacion, Usuario, Paciente
 from flask_wtf import FlaskForm
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-from datetime import datetime, time
+from datetime import datetime
+
 
 
 
@@ -39,8 +40,6 @@ login_manager.init_app(app)
 login_manager.login_view = "login_admin"  # Redirección si el usuario no está autenticado
 login_manager.session_protection = "strong" 
 
-# 🔹 Crear las tablas dentro del contexto de la aplicación
-
 
 # 🔹 Verificar conexión a la base de datos
 with app.app_context():
@@ -62,13 +61,15 @@ def is_safe_url(target):
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
+# Modulo admistracion
+
 @app.route('/login_admin', methods=['GET', 'POST'])
 def login_admin():
     if current_user.is_authenticated:
         rutas = {
             "Administrador": url_for('admin'),
             "Subadministrador": url_for('sudadmin'),
-            "farmacia": url_for('dashboard_farmacia')
+            "Farmacia": url_for('dashboard_farmacia')
         }
 
     if request.method == 'GET':
@@ -95,7 +96,7 @@ def login_admin():
     rutas = {
         "Administrador": url_for('admin'),
         "Subadministrador": url_for('sudadmin'),
-        "farmacia": url_for('dashboard_farmacia')
+        "Farmacia": url_for('dashboard_farmacia')
     }
 
     return jsonify({"status": "success", "redirect_url": rutas.get(user.rol, url_for('login_admin')), "clear_fields": False})
@@ -112,13 +113,23 @@ def admin():
 @app.route('/admin/perfil', methods=['GET'])
 @login_required
 def perfil():
-    if current_user.rol != 'Administrador':
+    # Si el usuario NO tiene rol permitido, lo rediriges a home
+    if current_user.rol not in ['Administrador', 'Subadministrador', 'Farmacia']:
         return redirect(url_for('home'))
     
-    # Obtener todas las solicitudes, ordenadas para que las rechazadas aparezcan al final
-    solicitudes = solicitudes_afiliacion.query.order_by(solicitudes_afiliacion.estado != 'Rechazada', solicitudes_afiliacion.fecha_solicitud.desc()).all()
-    
+    # 🔹 Si el usuario es de Farmacia, lo mandamos a su perfil específico
+    if current_user.rol == 'Farmacia':
+        return redirect(url_for('perfil_far'))  # Asegúrate de tener esta ruta
+
+    # Obtener todas las solicitudes si es admin o subadmin
+    solicitudes = solicitudes_afiliacion.query.order_by(
+        solicitudes_afiliacion.estado != 'Rechazada',
+        solicitudes_afiliacion.fecha_solicitud.desc()
+    ).all()
+
     return render_template('admin/perfil_dashboard.html', solicitudes=solicitudes, usuario=current_user)
+
+
 
 @app.route('/admin/solicitudes', methods=['GET'])
 @login_required
@@ -250,7 +261,6 @@ def aceptar_solicitud(solicitud_id):
         print(f"❌ Error inesperado: {repr(e)}")
         return jsonify({'status': 'error', 'message': f'Error al procesar la solicitud: {str(e)}'}), 500
 
-    
 
 @app.route('/admin/solicitudes/rechazar/<int:solicitud_id>', methods=['POST'])
 @login_required
@@ -417,10 +427,171 @@ def eliminar_paciente(id):
         db.session.rollback()
         return jsonify({'status': 'error', 'message': f'Error al eliminar paciente: {str(e)}'}), 500
 
+
+@app.route('/dashboard_farmacia')
+@login_required
+def dashboard_farmacia():
+    # Código de la vista
+    return render_template('dashboard_farmacia.html')
+
+@app.route('/dashboard_farmacia/perfil_farmacia')
+@login_required
+def perfil_far():
+    
+    solicitudes = solicitudes_afiliacion.query.order_by(
+        solicitudes_afiliacion.estado != 'Rechazada',
+        solicitudes_afiliacion.fecha_solicitud.desc()
+    ).all()
+    return render_template('perfil_farmacia.html' ,solicitudes=solicitudes, usuario=current_user )
+
+MEDICAMENTOS_UPLOAD_FOLDER = 'static/medicamentos/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['MEDICAMENTOS_UPLOAD_FOLDER'] = MEDICAMENTOS_UPLOAD_FOLDER
+
+# Asegurar que la carpeta exista
+os.makedirs(MEDICAMENTOS_UPLOAD_FOLDER, exist_ok=True)
+
+# Función para validar archivos permitidos
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/dashboard_farmacia/medicamentos/add_medicamento', methods=['GET', 'POST'])
+@login_required
+def agregar_medicamento():
+    if request.method == 'GET':
+        return render_template('farmacia/agregar_medicamento.html')
+
+    if request.method == 'POST':
+        try:
+            usuario_actual = db.session.query(Usuario).filter_by(id=current_user.id).first()
+            if not usuario_actual:
+                flash('❌ Usuario no encontrado', 'danger')
+                return redirect(url_for('agregar_medicamento'))
+
+            # Obtener datos del formulario
+            nombre_medicamento = request.form['nombre']
+            descripcion = request.form['descripcion']
+            tipo = request.form['tipo']
+            concentracion = request.form['concentracion']
+            presentacion = request.form['presentacion']
+            laboratorio = request.form['laboratorio']
+            fecha_vencimiento = request.form['fecha_vencimiento']
+            stock = int(request.form['stock'])
+
+            # Verificar si el medicamento ya existe con el mismo tipo y concentración
+            medicamento_existente = db.session.query(Medicamento).filter_by(tipo=tipo, concentracion=concentracion).first()
+            if medicamento_existente:
+                flash('⚠️ Ya existe un medicamento con el mismo tipo y concentración.', 'warning')
+                return redirect(url_for('agregar_medicamento'))
+
+            # Manejo de la imagen
+            imagen = request.files.get('imagen')
+            imagen_filename = None
+
+            if imagen and allowed_file(imagen.filename):
+                imagen_filename = secure_filename(imagen.filename)
+                imagen_path = os.path.join(app.config['MEDICAMENTOS_UPLOAD_FOLDER'], imagen_filename)
+                os.makedirs(app.config['MEDICAMENTOS_UPLOAD_FOLDER'], exist_ok=True)
+                imagen.save(imagen_path)
+
+            # Crear el objeto Medicamento
+            nuevo_medicamento = Medicamento(
+                nombre=nombre_medicamento,
+                descripcion=descripcion,
+                tipo=tipo,
+                concentracion=concentracion,
+                presentacion=presentacion,
+                laboratorio=laboratorio,
+                fecha_vencimiento=datetime.strptime(fecha_vencimiento, '%Y-%m-%d') if fecha_vencimiento else None,
+                stock=stock,
+                imagen_url=f"medicamentos/{imagen_filename}" if imagen_filename else None
+            )
+
+            db.session.add(nuevo_medicamento)
+            db.session.commit()  # ✅ Guardar en la base de datos
+
+            flash('✅ Medicamento agregado con éxito', 'success')
+            return redirect(url_for('agregar_medicamento'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'❌ Error al agregar medicamento: {str(e)}', 'danger')
+            return redirect(url_for('agregar_medicamento'))
+        
+        finally:
+            db.session.close()  # Cierra la sesión correctamente
+
+    return render_template('farmacia/agregar_medicamento.html')
+
+
+@app.route('/dashboard_farmacia/medicamentos', methods=['GET'])
+@login_required
+def ver_medicamentos():
+    if current_user.rol != 'Farmacia':
+        return redirect(url_for('home'))
+
+    # Obtener todos los medicamentos con sus detalles
+    medicamentos = db.session.query(
+        Medicamento.id,
+        Medicamento.nombre,
+        Medicamento.descripcion,
+        Medicamento.tipo,
+        Medicamento.concentracion,
+        Medicamento.laboratorio,
+        Medicamento.estado,
+        Medicamento.stock,
+        Medicamento.fecha_vencimiento,
+        Medicamento.fecha_ingreso,
+        Medicamento.imagen_url
+    ).all()
+
+    medicamentos_json = [{
+        'id': m.id,
+        'nombre': m.nombre,
+        'descripcion': m.descripcion,
+        'tipo': m.tipo,
+        'laboratorio': m.laboratorio,
+        'concentracion' : m.concentracion,
+        'fecha_vencimiento': m.fecha_vencimiento.strftime('%Y-%m-%d') if m.fecha_vencimiento else "N/A",
+        'estado': m.estado,
+        'stock': m.stock,
+        'fecha_ingreso': m.fecha_ingreso.strftime('%Y-%m-%d'),
+       'imagen_url': url_for('static', filename=m.imagen_url)
+
+
+    } for m in medicamentos]
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'status': 'success',
+            'medicamentos': medicamentos_json,
+            'timestamp': round(time.time() * 1000)
+        })
+    
+    return render_template('ver_medicamentos.html', medicamentos=medicamentos_json, usuario=current_user, timestamp=time.time())
+
+
+
 @app.route('/sudadmin')
 @login_required
 def sudadmin():
     return render_template('sudabmin_dashboard.html', usuario=current_user)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -855,10 +1026,7 @@ def actualizar_usuario():
 
 
 
-@app.route('/dashboard_farmacia')
-def dashboard_farmacia():
-    # Código de la vista
-    return render_template('dashboard_farmacia.html')
+
 
 
 @app.route('/logout')

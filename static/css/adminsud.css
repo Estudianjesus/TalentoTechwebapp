@@ -93,10 +93,7 @@ body {
     background-color: white;
     border-bottom: 1px solid rgba(0,0,0,0.05);
     padding: 15px;
-    margin-bottom: 40px;
-    position: fixed;
     z-index: 1025;
-    width: 80%;
 }
 
 .perfil-section{

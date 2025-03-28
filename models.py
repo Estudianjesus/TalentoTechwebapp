@@ -1,5 +1,6 @@
 from enum import Enum
 from flask_login import UserMixin
+from sqlalchemy import CheckConstraint, Column, Date, Integer, String, Text, func
 from database import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -99,14 +100,40 @@ class Cita(db.Model):
             'estado': self.estado
         }    
 
+
 class Medicamento(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'medicamento'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String(100), nullable=False)
-    descripcion = db.Column(db.Text)
-    cantidad = db.Column(db.Integer, nullable=False)
-    fecha_vencimiento = db.Column(db.Date, nullable=False)
-    imagen_url = db.Column(db.String(255))
+    descripcion = db.Column(db.Text, nullable=True)
+    tipo = db.Column(db.Enum('Analgésico', 'Antibiótico', 'Antiinflamatorio', 'Otro', name='tipo_medicamento'), nullable=True)
+    concentracion = db.Column(db.String(50), nullable=True)
+    presentacion = db.Column(db.Enum('Tableta', 'Jarabe', 'Inyectable', 'Crema', 'Otro', name='presentacion_medicamento'), nullable=True)
+    laboratorio = db.Column(db.String(100), nullable=True)
+    fecha_vencimiento = db.Column(db.Date, nullable=True)
+    estado = db.Column(db.Enum('Disponible', 'Agotado', 'Vencido', name='estado_medicamento'), nullable=False, default='Disponible')
+    stock = db.Column(db.Integer, nullable=False)
+    fecha_ingreso = db.Column(db.Date, server_default=func.current_date())
+    imagen_url = db.Column(db.String(255), nullable=True)  
     farmacia_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    
+
+    def to_dict(self):
+        return {
+            'id_medicamento': self.id,
+            'nombre': self.nombre,
+            'descripcion': self.descripcion,
+            'tipo': self.tipo.value if self.tipo else None,  
+            'concentracion': self.concentracion,
+            'presentacion': self.presentacion.value if self.presentacion else None,
+            'laboratorio': self.laboratorio,
+            'fecha_vencimiento': str(self.fecha_vencimiento) if self.fecha_vencimiento else None,
+            'estado': self.estado.value if self.estado else None,  
+            'stock': self.stock,
+            'fecha_ingreso': str(self.fecha_ingreso),
+            'imagen_url': self.imagen_url  
+        }
 
 class Notificacion(db.Model):
     id = db.Column(db.Integer, primary_key=True)

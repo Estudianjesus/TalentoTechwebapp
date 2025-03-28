@@ -1,0 +1,181 @@
+{% extends "dashboard_farmacia.html" %}
+{% block content %}
+
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+    }
+    .container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 20px;
+        overflow-x: auto; /* Permite desplazamiento horizontal */
+        margin-top: 5px;
+    }
+    h2 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 10px;
+    }
+    .table-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        width: 100%;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th {
+        background-color: #3498db;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border: 1px solid bisque;
+    }
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #e0e0e0;
+        text-align: left;
+        border: 1px solid #3498db;
+    }
+    td img {
+        border-radius: 4px;
+        object-fit: cover;
+        max-width: 50px;
+        height: auto;
+    }
+    .stock-low {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+    .stock-medium {
+        color: #f39c12;
+    }
+    .stock-high {
+        color: #2ecc71;
+    }
+
+    th ,td{
+        border-bottom: 1px navy;
+    }
+
+    /* Responsividad */
+    @media (max-width: 768px) {
+        th, td {
+            padding: 8px;
+            font-size: 14px;
+        }
+        h2 {
+            font-size: 18px;
+        }
+    }
+    @media (max-width: 480px) {
+        .container {
+            padding: 10px;
+        }
+        table {
+            font-size: 12px;
+        }
+        td img {
+            max-width: 60px !important;
+        }
+    }
+
+    img{
+        max-width:  200px !important;
+        height: 70px !important;
+    }
+
+    td img {
+        transition: transform 0.3s ease-in-out !important;
+    }
+    
+    td img:hover {
+        transform: scale(1.5) !important;
+    }
+</style>
+
+<div class="container ">
+    <h2>📋 Inventario de Medicamentos</h2>
+    <a class="mb-5 mx-auto"  href="{{ url_for('agregar_medicamento') }}" >Agregar Nuevo Medicamento</a>
+    <div class="table-container">
+        <table border="0">
+            <thead>
+                <tr> 
+                    <th>ID</th>
+                    <th>Imagen</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Concentración</th>
+                    <th>Laboratorio</th>
+                    <th>Vencimiento</th>
+                    <th>Estado</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="medicamentos-table">
+                <!-- Contenido se insertará via AJAX -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: "/dashboard_farmacia/medicamentos",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                if (response.status === "success") {
+                    let rows = "";
+                    response.medicamentos.forEach(m => {
+                        let stockClass = 'stock-high';
+                        if (m.stock < 10) stockClass = 'stock-low';
+                        else if (m.stock < 50) stockClass = 'stock-medium';
+                        let imgSrc = m.imagen_url ? m.imagen_url : "/static/medicamentos/default.jpg";
+    
+                        rows += `
+                        <tr>
+                            <td>${m.id}</td>
+                            <td>
+                                <img src="${imgSrc}" alt="Imagen" width="100px">
+                            </td>
+                            <td>${m.nombre}</td>
+                            <td>${m.tipo}</td>
+                            <td>${m.concentracion}</td>
+                            <td>${m.laboratorio}</td>
+                            <td>${m.fecha_vencimiento}</td>
+                            <td>${m.estado}</td>
+                            <td class="${stockClass}">${m.stock}</td>
+                            <td>
+                                <a href="/editar_medicamento/${m.id}" class="edit-link text-decoration-none">✏️ Editar</a>
+                                <a href="/borrar_medicamento/${m.id}" class="delete-link text-decoration-none text-danger "  onclick="return confirm('¿Estás seguro de eliminar este medicamento?');">🗑️ Borrar</a>
+                            </td>
+                        </tr>
+                    `;
+                    });
+                    $("#medicamentos-table").html(rows);
+                }
+            },
+            error: function(error) {
+                console.log("Error al obtener los medicamentos", error);
+            }
+        });
+    });
+    
+  
+</script>
+
+{% endblock %}
