@@ -4,135 +4,288 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediGestión - Portal de Afiliados</title>
-      <!-- Bootstrap CSS -->
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Toastify CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}">
+    
+    <style>
+        .cita-confirmada { background-color: #28a745; color: white; }
+        .cita-cancelada { background-color: #dc3545; color: white; }
+        .cita-pendiente { background-color: #ffc107; color: white; }
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<!-- Chart.js para gráficos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-<!-- Toastify CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
-<!-- Toastify JS -->
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
-<!-- Estilos y scripts personalizados -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}">
-
-
-
+        /* Estilos generales para el contenedor de citas */
+.citas-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Estilo para las secciones de día */
+  .day-section {
+    margin-bottom: 30px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Encabezado del día */
+  .day-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  /* Estilo para la insignia de fecha */
+  .date-badge {
+    background-color: #0056b3;
+    color: white;
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: 6px;
+    display: inline-block;
+    font-size: 1rem;
+  }
+  
+  /* Grid para tarjetas de citas */
+  .citas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  /* Estilo para cada tarjeta de cita */
+  .cita-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .cita-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Encabezado de la tarjeta */
+  .cita-header {
+    padding: 15px;
+    background-color: #f0f7ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .cita-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
+  .cita-header span {
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  
+  /* Colores para estados de cita */
+  .cita-header span:contains('Confirmada') {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .cita-header span:contains('Cancelada') {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .cita-header span:contains('Pendiente') {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  /* Cuerpo de la tarjeta */
+  .cita-body {
+    padding: 15px;
+    color: #555;
+    line-height: 1.5;
+  }
+  
+  .cita-body div {
+    margin-bottom: 8px;
+  }
+  
+  /* Pie de la tarjeta */
+  .cita-footer {
+    padding: 15px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .cita-footer button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+  }
+  
+  .cita-footer button:hover {
+    background-color: #c82333;
+  }
+  
+  /* Estilos para el loader */
+  .loader-container {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+    font-size: 1.1rem;
+  }
+  
+  /* Estilos para mensajes de error */
+  .error-container {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  /* Estado vacío */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  
+  .empty-state h3 {
+    margin-bottom: 20px;
+    color: #555;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0069d9;
+  }
+  
+  /* Estilos responsivos */
+  @media (max-width: 768px) {
+    .citas-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .date-badge {
+      font-size: 0.9rem;
+      padding: 6px 12px;
+    }
+    
+    .cita-header h3 {
+      font-size: 1rem;
+    }
+  }
+    </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Header Premium con Experiencia Mejorada -->
+        <!-- Header -->
         <header class="header">
-            <div class="header-content">
-                <div class="brand-section">
+            <div class="header-content d-flex justify-content-between align-items-center">
+                <div class="brand-section d-flex align-items-center">
                     <div class="logo-medi">
                         <div class="logo-icon-circle">
                             <i class="fas fa-heartbeat"></i>
                         </div>
                     </div>
-                    <div class="brand-text">
+                    <div class="brand-text ms-2">
                         <h1 class="brand-name">MediGestión</h1>
                         <p class="brand-slogan">Tu salud es nuestra prioridad</p>
                     </div>
                 </div>
                 
-                <!-- Navegación principal en el header -->
+                <!-- Navegación principal -->
                 <nav class="main-nav">
-                    <ul class="main-nav-list">
-                        <li class="main-nav-item">
-                            <a href="#" class="main-nav-link active">
-                                <i class="fas fa-home"></i> Inicio
-                            </a>
-                        </li>
-                        <li class="main-nav-item">
-                            <a href="#" class="main-nav-link">
-                                <i class="fas fa-stethoscope"></i> Médicos
-                            </a>
-                        </li>
-                        <li class="main-nav-item">
-                            <a href="#" class="main-nav-link">
-                                <i class="fas fa-hospital"></i> Centros
-                            </a>
-                        </li>
-                        <li class="main-nav-item">
-                            <a href="#" class="main-nav-link">
-                                <i class="fas fa-bell"></i> Notificaciones
-                                <span class="nav-badge">3</span>
-                            </a>
-                        </li>
+                    <ul class="main-nav-list d-flex">
+                        <li class="main-nav-item"><a href="#" class="main-nav-link active"><i class="fas fa-home"></i> Inicio</a></li>
+                        <li class="main-nav-item"><a href="#" class="main-nav-link"><i class="fas fa-stethoscope"></i> Médicos</a></li>
+                        <li class="main-nav-item"><a href="#" class="main-nav-link"><i class="fas fa-hospital"></i> Centros</a></li>
+                        <li class="main-nav-item"><a href="#" class="main-nav-link"><i class="fas fa-bell"></i> Notificaciones <span class="nav-badge">3</span></a></li>
                     </ul>
                 </nav>
                 
-                <!-- Menú de usuario mejorado -->
+                <!-- Menú de usuario -->
                 <div class="user-section dropdown" id="userSection">
                     <div class="user-menu-trigger d-flex align-items-center" id="userMenuTrigger">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="user-name" id="nombreapellido" >{{ paciente.primer_nombre | upper }}</span>
+                        <div class="user-avatar"><i class="fas fa-user"></i></div>
+                        <span class="user-name" id="nombreapellido">{{ paciente.primer_nombre | upper }}</span>
                         <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.8;"></i>
                     </div>
-                
+                    
                     <div class="user-dropdown dropdown-menu">
                         <div class="user-dropdown-header">
-                            <h4 class="user-dropdown-title" id="userDropdownName">{{ paciente.primer_nombre | upper ~ ' ' ~ paciente.primer_apellido | upper }}</h4>
-                            <p class="user-dropdown-subtitle" id="userDropdownId">{{paciente.tipo_documento ~ ':' ~ paciente.numero_documento }}</p>
+                            <h4 id="userDropdownName">{{ paciente.primer_nombre | upper ~ ' ' ~ paciente.primer_apellido | upper }}</h4>
+                            <p id="userDropdownId">{{ paciente.tipo_documento ~ ':' ~ paciente.numero_documento }}</p>
                         </div>
                         <div class="user-dropdown-body">
-                            <a href="{{ url_for('perfil_usuario') }}" class="user-menu-link dropdown-item">
-                                <i class="fas fa-user-circle"></i>
-                                <span>Mi Perfil</span>
-                            </a>
-                            <a href="#" class="user-menu-link dropdown-item d-flex justify-content-between">
-                                <span><i class="fas fa-bell"></i> Notificaciones</span>
-                                <span class="ms-auto badge bg-danger rounded-pill">3</span>
-                            </a>
+                            <a href="{{ url_for('perfil_usuario') }}" class="dropdown-item"><i class="fas fa-user-circle"></i> Mi Perfil</a>
+                            <a href="#" class="dropdown-item d-flex justify-content-between"><span><i class="fas fa-bell"></i> Notificaciones</span><span class="badge bg-danger rounded-pill">3</span></a>
                         </div>
                         <div class="user-dropdown-footer">
-                            <a href="{{ url_for('salir') }}" class="logout-btn dropdown-item text-danger">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Cerrar Sesión</span>
-                            </a>
+                            <a href="{{ url_for('salir') }}" class="dropdown-item text-danger"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
                         </div>
                     </div>
                 </div>
             </div>
         </header>
         
-        <!-- Navegación de pestañas mejorada -->
+        <!-- Navegación de pestañas -->
         <div class="nav-tabs-container">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab">
-                        <i class="fas fa-home"></i> Inicio
-                    </button>
+            <ul class="nav nav-tabs" id="tabsNav" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-bs-toggle="tab" href="#home" role="tab">Inicio</a>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" role="tab">
-                        <i class="fas fa-calendar-check"></i> Mis Citas
-                    </button>
+                <li class="nav-item">
+                    <a class="nav-link" id="appointments-tab" data-bs-toggle="tab" href="#appointments" role="tab">Citas</a>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
-                        <i class="fas fa-file-medical"></i> Mi Historial
-                    </button>
+                <li class="nav-item">
+                    <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history" role="tab">Historial</a>
                 </li>
-    
             </ul>
         </div>
-        
-        <!-- Contenido de las pestañas -->
-        <div class="tab-content" id="myTabContent">
-            <!-- Pestaña de Inicio -->
-            <div class="tab-pane fade show active" id="home" role="tabpanel">
-                <!-- Acciones rápidas con diseño premium -->
+
+        <div class="tab-content" id="contenidoPrincipal">
+            <div id="quickActions">
                 <div class="row g-3 mb-4">
                     <div class="col-6 col-md-3">
-                        <div class="quick-action"  onclick="window.location.href='{{ url_for('agendar') }}'">
+                        <div class="quick-action" onclick="window.location.href='{{ url_for('agendar') }}'">
                             <div class="icon-container animate-pulse">
                                 <i class="fas fa-calendar-plus"></i>
                             </div>
@@ -164,76 +317,51 @@
                         </div>
                     </div>
                 </div>
-
-    <main class="container mt-5">
-        <section class="card shadow-lg p-4 collapse" id="formularioCita">
-            <h2 class="text-center mb-4">Agendar Cita</h2>
-            <form id="formCita">
-                <div class="row g-3">
-                    <!-- Tipo de Documento -->
-                    <div class="col-md-6">
-                        <label for="tipo_documento" class="form-label">Tipo de Documento</label>
-                        <input type="text" class="form-control" id="tipo_documento" name="tipo_documento" readonly required>
-                    </div>
-                    <!-- Número de Documento -->
-                    <div class="col-md-6">
-                        <label for="documentNumber" class="form-label">Número de Documento</label>
-                        <input type="text" class="form-control" id="documentNumber" name="documentNumber" readonly required>
-                    </div>
-                    <!-- Nombre y Segundo Nombre -->
-                    <div class="col-md-6">
-                        <label for="nombre" class="form-label">Primer Nombre</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" readonly required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="segundo_nombre" class="form-label">Segundo Nombre</label>
-                        <input type="text" class="form-control" id="segundo_nombre" name="segundo_nombre" readonly>
-                    </div>
-                    <!-- Apellido y Segundo Apellido -->
-                    <div class="col-md-6">
-                        <label for="apellido" class="form-label">Primer Apellido</label>
-                        <input type="text" class="form-control" id="apellido" name="apellido" readonly required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="segundo_apellido" class="form-label">Segundo Apellido</label>
-                        <input type="text" class="form-control" id="segundo_apellido" name="segundo_apellido" readonly>
-                    </div>
-                    <!-- Tipo de Cita -->
-                    <div class="col-md-6">
-                        <label for="tipo_cita" class="form-label">Tipo de Cita</label>
-                        <select class="form-select" id="tipo_cita" name="tipo_cita" required>
-                            <option value="Medicina General">Medicina General</option>
-                            <option value="Odontología">Odontología</option>
-                            <option value="Pediatría">Pediatría</option>
-                        </select>
-                    </div>
-                    <!-- Fecha y Hora -->
-                    <div class="col-md-3">
-                        <label for="fecha" class="form-label">Fecha</label>
-                        <input type="date" class="form-control" id="fecha" name="fecha" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="hora" class="form-label">Hora</label>
-                        <input type="time" class="form-control" id="hora" name="hora" required>
-                    </div>
-                    <!-- Motivo -->
-                    <div class="col-12">
-                        <label for="motivo" class="form-label">Motivo</label>
-                        <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
-                    </div>
-                </div>
-                <!-- Botón de Enviar -->
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary w-100">Agendar Cita</button>
-                </div>
-            </form>
-        </section>
-        {% block content%}
-        {% endblock %}
-    </main>
-
-    <script src="{{ url_for('static', filename='js/usuario/abrir_perfil.js') }}"></script> 
+            </div>
+            
+            
+        </div>
+      
+        <!-- Contenido de las pestañas -->
+        <div class="tab-content" id="tabsContent">
+            <div class="tab-pane fade show active" id="home" role="tabpanel">
+                <p>Contenido de Inicio</p>
+            </div>
+            <div class="tab-pane fade" id="appointments" role="tabpanel">
+                <div id="contenedor-citas" class="row"></div>
+            </div>
+            <div class="tab-pane fade" id="history" role="tabpanel">
+                <p>Contenido de Historial</p>
+            </div>
+        </div>
+        
+        <main class="container mt-5">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
     
+    <script>document.addEventListener("DOMContentLoaded", function() {
+        var quickActions = document.getElementById("quickActions");
+        var tabs = document.querySelectorAll(".nav-link");
+    
+        tabs.forEach(function(tab) {
+            tab.addEventListener("shown.bs.tab", function(event) {
+                var targetTab = event.target.getAttribute("href"); // Obtiene el ID de la pestaña activa
+    
+                if (targetTab === "#appointments" || targetTab === "#history") {
+                    quickActions.style.display = "none"; // Ocultar en "Citas" y "Historial"
+                } else {
+                    quickActions.style.display = "block"; // Mostrar en otras pestañas
+                }
+            });
+        });
+    });</script>
+    <script src="{{ url_for('static', filename='js/usuario/abrir_perfil.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/usuario/citas_pacientes.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Agregar SweetAlert2 (para mejores alertas) -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

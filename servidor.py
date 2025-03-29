@@ -7,7 +7,7 @@ import time
 import traceback
 from urllib.parse import urljoin, urlparse
 from sqlalchemy import text
-from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, session
+from flask import Flask, json, jsonify, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
@@ -513,8 +513,6 @@ def historial_citas():
         return render_template('admin/historial_citas.html', error="Error al obtener el historial")
 
 
-
-
 @app.route('/dashboard_farmacia')
 @login_required
 def dashboard_farmacia():
@@ -625,10 +623,6 @@ def agregar_medicamento():
 
     return render_template('farmacia/agregar_medicamento.html')
 
-
-
-
-
 @app.route('/dashboard_farmacia/medicamentos', methods=['GET'])
 @login_required
 def ver_medicamentos():
@@ -674,8 +668,6 @@ def ver_medicamentos():
         })
     
     return render_template('ver_medicamentos.html', medicamentos=medicamentos_json, usuario=current_user, timestamp=time.time())
-
-
 
 @app.route('/editar_medicamento/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -1078,33 +1070,119 @@ def verificar_citas():
 
 @app.route('/api/citas_paciente')
 def citas_paciente():
-    paciente_id = session.get('paciente_id')
-    if not paciente_id:
-        return jsonify({'success': False, 'message': 'No autorizado'}), 401
+    print("======= INICIO DE API CITAS_PACIENTE =======")
+    print("IP de solicitud:", request.remote_addr)
     
-    citas = Cita.query.filter_by(paciente_id=paciente_id).order_by(Cita.fecha, Cita.hora).all()
-    return jsonify({
-        'success': True,
-        'citas': [cita.to_dict() for cita in citas]
-    })
-
-@app.route('/api/cancelar_cita/<int:cita_id>', methods=['POST'])
+    # Verificar autenticación
+    if not current_user.is_authenticated:
+        print("ERROR: Usuario no autenticado")
+        return jsonify({
+            'success': False, 
+            'message': 'Usuario no autenticado. Por favor inicie sesión.', 
+            'citas': []
+        })
+    
+    print("Usuario autenticado ID:", current_user.id)
+    print("Tipo de usuario:", type(current_user).__name__)
+    
+    # Buscar el paciente asociado al usuario
+    try:
+        paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+        if not paciente:
+            print(f"ERROR: No se encontró paciente para usuario_id={current_user.id}")
+            return jsonify({
+                'success': False, 
+                'message': 'No se encontró un paciente asociado a su cuenta.', 
+                'citas': []
+            })
+        
+        print(f"Paciente encontrado ID: {paciente.id}, Nombre: {paciente.nombre if hasattr(paciente, 'nombre') else 'N/A'}")
+        
+        # Buscar citas asociadas al paciente
+        citas = Cita.query.filter_by(paciente_id=paciente.id).order_by(Cita.fecha, Cita.hora).all()
+        print(f"Cantidad de citas encontradas: {len(citas)}")
+        
+        # Convertir citas a formato JSON
+        citas_json = []
+        for i, cita in enumerate(citas):
+            print(f"\nProcesando cita #{i+1}, ID: {cita.id}")
+            
+            # Formatear la hora correctamente según el tipo de dato
+            hora_str = None
+            print(f"Tipo de dato de hora: {type(cita.hora).__name__}")
+            
+            try:
+                if isinstance(cita.hora, timedelta):
+                    hora_str = (datetime.min + cita.hora).time().strftime('%H:%M')
+                elif hasattr(cita.hora, 'strftime'):
+                    hora_str = cita.hora.strftime('%H:%M')
+                else:
+                    hora_str = str(cita.hora)
+                
+                print(f"Hora formateada: {hora_str}")
+            except Exception as e:
+                print(f"ERROR al formatear hora: {str(e)}")
+                hora_str = "Error: " + str(e)
+            
+            try:
+                fecha_str = cita.fecha.strftime('%Y-%m-%d')
+                print(f"Fecha formateada: {fecha_str}")
+            except Exception as e:
+                print(f"ERROR al formatear fecha: {str(e)}")
+                fecha_str = "Error: " + str(e)
+            
+            cita_dict = {
+                'id': cita.id,
+                'paciente_id': cita.paciente_id,
+                'tipo_servicio': getattr(cita, 'tipo_servicio', 'No especificado'),
+                'especialidad': getattr(cita, 'especialidad', None),
+                'tipo_examen': getattr(cita, 'tipo_examen', None),
+                'motivo': getattr(cita, 'motivo', None),
+                'fecha': fecha_str,
+                'hora': hora_str,
+                'codigo_confirmacion': getattr(cita, 'codigo_confirmacion', None),
+                'estado': getattr(cita, 'estado', 'Desconocido')
+            }
+            
+            print(f"Cita formateada: {json.dumps(cita_dict)}")
+            citas_json.append(cita_dict)
+        
+        respuesta = {'success': True, 'citas': citas_json}
+        print(f"\nRespuesta final: success=True, {len(citas_json)} citas")
+        print("======= FIN DE API CITAS_PACIENTE =======")
+        return jsonify(respuesta)
+    
+    except Exception as e:
+        print(f"EXCEPCIÓN INESPERADA: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False, 
+            'message': f'Error interno: {str(e)}', 
+            'citas': []
+        })
+@app.route('/api/cancelar_cita/<int:cita_id>', methods=['DELETE'])
+@login_required
 def cancelar_cita(cita_id):
-    paciente_id = session.get('paciente_id')
-    if not paciente_id:
-        return jsonify({'success': False, 'message': 'No autorizado'}), 401
-    
-    cita = Cita.query.filter_by(id=cita_id, paciente_id=paciente_id).first()
-    if not cita:
-        return jsonify({'success': False, 'message': 'Cita no encontrada'}), 404
-    
-    cita.estado = 'Cancelada'
-    db.session.commit()
-    
-    return jsonify({
-        'success': True,
-        'message': 'Cita cancelada correctamente'
-    })
+    try:
+        paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+        if not paciente:
+            return jsonify({'success': False, 'message': 'No se encontró un paciente asociado.'}), 404
+
+        cita = Cita.query.filter_by(id=cita_id, paciente_id=paciente.id).first()
+        if not cita:
+            return jsonify({'success': False, 'message': 'Cita no encontrada o no autorizada para cancelar.'}), 404
+
+        db.session.delete(cita)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Cita cancelada exitosamente.'}), 204  # No Content
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'Error interno: {str(e)}'}), 500
+
 
 
 
