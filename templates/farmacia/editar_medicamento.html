@@ -1,0 +1,341 @@
+{% extends "dashboard_farmacia.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --accent-color: #e74c3c;
+    }
+    
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .container{
+        margin-top:50px !important;
+    }
+    
+    .form-container {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+        border-left: 5px solid var(--secondary-color);
+        padding-left: 15px;
+        margin: 1.5rem 0;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        border-color: var(--secondary-color);
+    }
+    
+    .input-group-text {
+        border-radius: 10px 0 0 10px;
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, var(--secondary-color), #2980b9);
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        transition: all 0.3s;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        background: linear-gradient(to right, #2980b9, var(--secondary-color));
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-floating > .form-control, 
+    .form-floating > .form-select {
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+    }
+    
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+    }
+    
+    .form-check {
+        padding-left: 2rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+    
+    .form-icon {
+        font-size: 1.5rem;
+        color: var(--secondary-color);
+        margin-right: 0.5rem;
+    }
+    
+    .required-field::after {
+        content: '*';
+        color: var(--accent-color);
+        margin-left: 4px;
+    }
+    
+    .password-indicator {
+        height: 5px;
+        transition: all 0.3s;
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+    
+    .floating-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: var(--secondary-color);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.2);
+        transition: all 0.3s;
+        z-index: 1000;
+    }
+    
+    .floating-button:hover {
+        transform: scale(1.1);
+    }
+    
+    .readonly-field {
+        background-color: #f8f9fa;
+        opacity: 0.8;
+    }
+    
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 1rem;
+        }
+        
+        .form-header {
+            padding: 1rem;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container mt-4 py-4 ">
+    <div id="mensaje_alerta"></div> 
+<div class="form-header">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-person-gear me-3" style="font-size: 2.5rem;"></i>
+        <div>
+            <h1 class="mb-0">Editar Medicamento</h1>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- Datos personales -->
+   
+    <form action="{{ url_for('editar_medicamento', id=medicamento.id) }}" method="POST" enctype="multipart/form-data">
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre del Medicamento</label>
+                <input type="text" name="nombre" class="form-control" required placeholder="Nombre  del medicamento" 
+                value="{{medicamento.nombre}}"
+                >
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Tipo de Medicamento</label>
+                <select name="tipo" class="form-select" required>
+                    <option value="Analgésico" {% if medicamento.tipo == "Analgésico" %}selected{% endif %}>Analgésico</option>
+                    <option value="Antibiótico" {% if medicamento.tipo == "Antibiótico" %}selected{% endif %}>Antibiótico</option>
+                    <option value="Antiinflamatorio" {% if medicamento.tipo == "Antiinflamatorio" %}selected{% endif %}>Antiinflamatorio</option>
+                    <option value="Otro" {% if medicamento.tipo == "Otro" %}selected{% endif %}>Otro</option>
+                </select>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Laboratorio</label>
+                <input type="text" name="laboratorio" class="form-control" 
+                       value="{{ medicamento.laboratorio }}" placeholder="Nombre del laboratorio">
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-5 mb-3">
+                <label class="form-label">Concentración</label>
+                <select name="concentracion" class="form-select" id="concentracion_select">
+                    <option value="250mg" {% if medicamento.concentracion == "250mg" %}selected{% endif %}>250mg</option>
+                    <option value="500mg" {% if medicamento.concentracion == "500mg" %}selected{% endif %}>500mg</option>
+                    <option value="1g" {% if medicamento.concentracion == "1g" %}selected{% endif %}>1g</option>
+                    <option value="Otro" {% if medicamento.concentracion == "Otro" %}selected{% endif %}>Otro</option>
+                </select>
+                <input type="text" name="concentracion_otro" id="concentracion_otro" class="form-control mt-2 d-none"
+                       placeholder="Concentración específica" value="{{ medicamento.concentracion }}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Presentación</label>
+                <select name="presentacion" class="form-select" required>
+                    <option value="Tableta" {% if medicamento.presentacion == "Tableta" %}selected{% endif %}>Tableta</option>
+                    <option value="Capsula" {% if medicamento.presentacion == "Capsula" %}selected{% endif %}>Cápsula</option>
+                    <option value="Jarabe" {% if medicamento.presentacion == "Jarabe" %}selected{% endif %}>Jarabe</option>
+                    <option value="Inyección" {% if medicamento.presentacion == "Inyección" %}selected{% endif %}>Inyección</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Stock</label>
+                <input type="number" name="stock" class="form-control" required min="0" placeholder="Cantidad disponible"
+                value="{{medicamento.stock}}"
+                >
+            </div>
+            
+            <div class="row">
+                <div class="col-md-9 mb-3">
+                    <label class="form-label">Descripción Clínica</label>
+                    <textarea name="descripcion" class="form-control" rows="3" placeholder="Información adicional, indicaciones o restricciones">{{ medicamento.descripcion }}</textarea>
+                </div>
+            </div>
+            
+        </div>
+
+        
+        <div class="section-divider">
+            <span>Detalles </span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Imagen del Medicamento</label>
+                
+                <!-- Campo para subir una nueva imagen -->
+                <input type="file" name="imagen" class="form-control">
+                <div class="form-text">Formato: JPG, PNG (máx. 5MB)</div>
+        
+                {% if medicamento.imagen_url %}
+                <div>
+                    <label>Imagen Actual:</label>
+                    <img id="medicamento-imagen" alt="{{ medicamento.nombre }}" width="200">
+                </div>
+                {% endif %}
+                
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const imagenElement = document.getElementById('medicamento-imagen');
+                    const rutaImagen = "{{ medicamento.imagen_url }}";
+                
+                    if (rutaImagen) {
+                        // Intentar cargar la imagen desde varias rutas posibles
+                        const posibleRutas = [
+                            `/media/${rutaImagen}`,  // Ruta con prefijo media
+                            `/static/${rutaImagen}`, // Ruta con prefijo static
+                            rutaImagen               // Ruta original
+                        ];
+                
+                        function probarCargarImagen(rutas) {
+                            if (rutas.length === 0) {
+                                console.error('No se pudo cargar la imagen');
+                                return;
+                            }
+                
+                            const rutaActual = rutas[0];
+                            imagenElement.src = rutaActual;
+                
+                            imagenElement.onerror = function() {
+                                // Si falla, intentar con la siguiente ruta
+                                probarCargarImagen(rutas.slice(1));
+                            };
+                
+                            imagenElement.onload = function() {
+                                // Imagen cargada exitosamente
+                                console.log('Imagen cargada desde:', rutaActual);
+                            };
+                        }
+                
+                        probarCargarImagen(posibleRutas);
+                    }
+                });
+                </script>
+            
+    </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-lg" value="Agregar Medicamento" >
+                <i class="bi bi-save me-2"></i>Guardar Medicamento
+            </button>
+            <a href="{{ url_for('ver_medicamentos') }}" class="btn btn-danger btn-lg">
+                Cancelar
+            </a>
+        </div>
+        
+    </form>
+</div>
+
+<div class="floating-button" id="scroll_top">
+<i class="bi bi-arrow-up"></i>
+</div>
+
+<script src="{{ url_for('static', filename='js/grud_admin/editar.js') }}"></script> 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/alerta_mesaje_admin.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+   
+</script>
+{% endblock %}

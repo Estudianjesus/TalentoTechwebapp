@@ -545,27 +545,35 @@
                 }
             
                 function verificarDisponibilidadPorEspecialidad() {
+                    const esAtendida = (estado) => {
+                        return estado && estado.toString().trim().toLowerCase() === 'atendida';
+                    };
+                    
                     let citaExistente = null;
                     
                     switch(selectedService) {
                         case 'general':
-                            citaExistente = citasExistentes.find(cita => cita.tipo_servicio === 'general' && cita.estado !== 'atendida');
+                            citaExistente = citasExistentes.find(cita => 
+                                cita.tipo_servicio === 'general' && 
+                                !esAtendida(cita.estado)
+                            );
                             break;
                         case 'especialista':
                             citaExistente = citasExistentes.find(cita => 
                                 cita.tipo_servicio === 'especialista' && 
                                 cita.especialidad === selectedEspecialidad && 
-                                cita.estado !== 'atendida'
+                                !esAtendida(cita.estado)
                             );
                             break;
                         case 'laboratorio':
                             citaExistente = citasExistentes.find(cita => 
                                 cita.tipo_servicio === 'laboratorio' && 
                                 cita.tipo_examen === selectedTipoExamen && 
-                                cita.estado !== 'atendida'
+                                !esAtendida(cita.estado)
                             );
                             break;
                     }
+
                     
                     if (citaExistente) {
                         let mensaje = "";

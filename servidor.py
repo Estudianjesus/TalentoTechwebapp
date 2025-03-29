@@ -12,12 +12,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
 from database import db
-from models import Cita, Medicamento, solicitudes_afiliacion, Usuario, Paciente
+from models import AtencionCita, Cita, HistorialCita, Medicamento, solicitudes_afiliacion, Usuario, Paciente
 from flask_wtf import FlaskForm
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from datetime import datetime
-
+from sqlalchemy.orm import joinedload
+from datetime import datetime
+import datetime 
 
 
 
@@ -427,6 +429,91 @@ def eliminar_paciente(id):
         db.session.rollback()
         return jsonify({'status': 'error', 'message': f'Error al eliminar paciente: {str(e)}'}), 500
 
+from datetime import datetime
+
+@app.route('/admin/cita', methods=['GET'])
+def citas_admi():
+    citas = Cita.query.options(joinedload(Cita.paciente)).all()  
+
+    # Verificar si se están obteniendo citas
+    print(f'Citas obtenidas: {len(citas)}')  # Muestra cuántas citas se han recuperado
+
+    # Crear un diccionario de citas, asegurándose de convertir los valores de fecha y hora
+    citas_json = [{
+        'id':cita.id,
+        'nombre_paciente': cita.paciente.primer_nombre,
+        'tipo_servicio': cita.tipo_servicio,
+        'especialidad': cita.especialidad,
+        'fecha': cita.fecha.strftime('%Y-%m-%d'),  # Convertir la fecha a una cadena
+        'hora': str(cita.hora),  # Si la hora es un objeto timedelta, conviértelo a cadena
+        'estado': cita.estado
+    } for cita in citas]
+
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(citas_json)
+
+    return render_template('admin/cargar_citas.html', citas=citas_json)
+
+
+@app.route('/atender_cita/<int:cita_id>', methods=['GET', 'POST'])
+def atender_cita(cita_id):
+    cita = Cita.query.get_or_404(cita_id)
+    medicamentos = Medicamento.query.all()  # Obtener todos los medicamentos para la selección
+
+    if request.method == 'POST':
+        recomendacion = request.form['recomendacion']
+        medicamentos_seleccionados = request.form.getlist('medicamentos[]')
+        indicaciones = request.form.getlist('indicaciones[]')
+
+        # Guardar cada medicamento con su indicación
+        for i in range(len(medicamentos_seleccionados)):
+            atencion = AtencionCita(
+                cita_id=cita.id,
+                medicamento_id=medicamentos_seleccionados[i],
+                recomendacion=recomendacion,
+                indicacion=indicaciones[i]  # Guardar la indicación del medicamento
+            )
+            db.session.add(atencion)
+
+        # Mover la cita a la tabla de historial
+        historial_cita = HistorialCita(
+            id=cita.id,
+            paciente_id=cita.paciente_id,
+            fecha=cita.fecha,
+            hora=cita.hora,
+            tipo_servicio=cita.tipo_servicio,
+            especialidad=cita.especialidad,
+            estado='Atendida'  # Cambiar el estado al mover la cita
+        )
+        db.session.add(historial_cita)
+
+        # Eliminar la cita de la tabla original
+        db.session.delete(cita)
+
+        db.session.commit()
+
+        return redirect(url_for('citas_admi'))  # Redirigir al panel de citas
+
+    return render_template('admin/atender_cita.html', cita=cita, medicamentos=medicamentos)
+
+@app.route('/historial_citas', methods=['GET'])
+def historial_citas():
+    try:
+        # Obtener todas las citas del historial
+        citas_historial = HistorialCita.query.all()
+
+        if not citas_historial:
+            return render_template('admin/historial_citas.html', citas=[])  # Si no hay citas, mostrar una lista vacía
+
+        # Pasar las citas a la plantilla
+        return render_template('admin/historial_citas.html', citas=citas_historial)
+
+    except Exception as e:
+        return render_template('admin/historial_citas.html', error="Error al obtener el historial")
+
+
+
 
 @app.route('/dashboard_farmacia')
 @login_required
@@ -444,16 +531,17 @@ def perfil_far():
     ).all()
     return render_template('perfil_farmacia.html' ,solicitudes=solicitudes, usuario=current_user )
 
-MEDICAMENTOS_UPLOAD_FOLDER = 'static/medicamentos/'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+# Configuración de subida de imágenes
+MEDICAMENTOS_UPLOAD_FOLDER = os.path.join(app.static_folder, 'medicamentos')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MEDICAMENTOS_UPLOAD_FOLDER'] = MEDICAMENTOS_UPLOAD_FOLDER
 
-# Asegurar que la carpeta exista
+# Asegurar que la carpeta de imágenes exista
 os.makedirs(MEDICAMENTOS_UPLOAD_FOLDER, exist_ok=True)
 
-# Función para validar archivos permitidos
 def allowed_file(filename):
+    """ Verifica si el archivo tiene una extensión permitida. """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/dashboard_farmacia/medicamentos/add_medicamento', methods=['GET', 'POST'])
@@ -464,38 +552,52 @@ def agregar_medicamento():
 
     if request.method == 'POST':
         try:
-            usuario_actual = db.session.query(Usuario).filter_by(id=current_user.id).first()
+            usuario_actual = Usuario.query.get(current_user.id)
             if not usuario_actual:
                 flash('❌ Usuario no encontrado', 'danger')
                 return redirect(url_for('agregar_medicamento'))
-
+            
             # Obtener datos del formulario
-            nombre_medicamento = request.form['nombre']
-            descripcion = request.form['descripcion']
-            tipo = request.form['tipo']
-            concentracion = request.form['concentracion']
-            presentacion = request.form['presentacion']
-            laboratorio = request.form['laboratorio']
-            fecha_vencimiento = request.form['fecha_vencimiento']
-            stock = int(request.form['stock'])
+            nombre_medicamento = request.form.get('nombre', '').strip()
+            descripcion = request.form.get('descripcion', '').strip()
+            tipo = request.form.get('tipo', '').strip()
+            concentracion = request.form.get('concentracion', '').strip()
+            presentacion = request.form.get('presentacion', '').strip()
+            laboratorio = request.form.get('laboratorio', '').strip()
+            stock = request.form.get('stock', '0').strip()
+
+            # Validación de stock
+            try:
+                stock = int(stock)
+                if stock < 0:
+                    flash('⚠️ El stock no puede ser negativo.', 'warning')
+                    return redirect(url_for('agregar_medicamento'))
+            except ValueError:
+                flash('⚠️ El stock debe ser un número entero válido.', 'warning')
+                return redirect(url_for('agregar_medicamento'))
 
             # Verificar si el medicamento ya existe con el mismo tipo y concentración
-            medicamento_existente = db.session.query(Medicamento).filter_by(tipo=tipo, concentracion=concentracion).first()
+            medicamento_existente = Medicamento.query.filter_by(tipo=tipo, concentracion=concentracion).first()
             if medicamento_existente:
                 flash('⚠️ Ya existe un medicamento con el mismo tipo y concentración.', 'warning')
                 return redirect(url_for('agregar_medicamento'))
 
             # Manejo de la imagen
             imagen = request.files.get('imagen')
-            imagen_filename = None
-
+            imagen_filename = 'default.jpg'  # Imagen por defecto
+            
             if imagen and allowed_file(imagen.filename):
                 imagen_filename = secure_filename(imagen.filename)
                 imagen_path = os.path.join(app.config['MEDICAMENTOS_UPLOAD_FOLDER'], imagen_filename)
-                os.makedirs(app.config['MEDICAMENTOS_UPLOAD_FOLDER'], exist_ok=True)
-                imagen.save(imagen_path)
 
-            # Crear el objeto Medicamento
+                try:
+                    imagen.save(imagen_path)
+                    print(f"✅ Imagen guardada en: {imagen_path}")  # Depuración
+                except Exception as e:
+                    flash(f'⚠️ Error al guardar la imagen: {str(e)}', 'warning')
+                    return redirect(url_for('agregar_medicamento'))
+
+            # Crear el objeto Medicamento y guardar en BD
             nuevo_medicamento = Medicamento(
                 nombre=nombre_medicamento,
                 descripcion=descripcion,
@@ -503,9 +605,8 @@ def agregar_medicamento():
                 concentracion=concentracion,
                 presentacion=presentacion,
                 laboratorio=laboratorio,
-                fecha_vencimiento=datetime.strptime(fecha_vencimiento, '%Y-%m-%d') if fecha_vencimiento else None,
                 stock=stock,
-                imagen_url=f"medicamentos/{imagen_filename}" if imagen_filename else None
+                imagen_url=f"medicamentos/{imagen_filename}"  # Se guarda la ruta
             )
 
             db.session.add(nuevo_medicamento)
@@ -525,6 +626,9 @@ def agregar_medicamento():
     return render_template('farmacia/agregar_medicamento.html')
 
 
+
+
+
 @app.route('/dashboard_farmacia/medicamentos', methods=['GET'])
 @login_required
 def ver_medicamentos():
@@ -541,7 +645,6 @@ def ver_medicamentos():
         Medicamento.laboratorio,
         Medicamento.estado,
         Medicamento.stock,
-        Medicamento.fecha_vencimiento,
         Medicamento.fecha_ingreso,
         Medicamento.imagen_url
     ).all()
@@ -553,11 +656,12 @@ def ver_medicamentos():
         'tipo': m.tipo,
         'laboratorio': m.laboratorio,
         'concentracion' : m.concentracion,
-        'fecha_vencimiento': m.fecha_vencimiento.strftime('%Y-%m-%d') if m.fecha_vencimiento else "N/A",
         'estado': m.estado,
         'stock': m.stock,
         'fecha_ingreso': m.fecha_ingreso.strftime('%Y-%m-%d'),
-       'imagen_url': url_for('static', filename=m.imagen_url)
+       'imagen_url': url_for('static', filename=m.imagen_url) if m.imagen_url else '/static/default.png'
+
+
 
 
     } for m in medicamentos]
@@ -572,6 +676,59 @@ def ver_medicamentos():
     return render_template('ver_medicamentos.html', medicamentos=medicamentos_json, usuario=current_user, timestamp=time.time())
 
 
+
+@app.route('/editar_medicamento/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_medicamento(id):
+    medicamento = Medicamento.query.get(id)
+    if not medicamento:
+        return "Medicamento no encontrado", 404
+
+    if request.method == 'POST':
+        medicamento.nombre = request.form['nombre']
+        medicamento.descripcion = request.form['descripcion']
+        medicamento.tipo = request.form['tipo']
+        medicamento.concentracion = request.form['concentracion']
+        medicamento.presentacion = request.form['presentacion']
+        medicamento.laboratorio = request.form['laboratorio']
+        medicamento.stock = int(request.form['stock'])
+
+        # Manejo de la imagen
+        if 'imagen' in request.files:
+            file = request.files['imagen']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                
+                # Crear la carpeta si no existe
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                
+                file.save(filepath)
+                medicamento.imagen_url = f'/medicamentos/{filename}'  # Guardar ruta en la base de datos
+
+        db.session.commit()
+        return redirect(url_for('ver_medicamentos'))
+
+    return render_template('farmacia/editar_medicamento.html', medicamento=medicamento)
+
+@app.route('/eliminar_medicamento/<int:id>', methods=['GET','POST'])
+@login_required
+def eliminar_medicamento(id):
+    medicamento = Medicamento.query.get(id)
+    if not medicamento:
+        return "Medicamento no encontrado", 404
+
+    # Eliminar la imagen asociada si existe
+    if medicamento.imagen_url:
+        ruta_imagen = os.path.join(app.config['UPLOAD_FOLDER'], medicamento.imagen_url)
+        if os.path.exists(ruta_imagen):
+            os.remove(ruta_imagen)
+
+    # Eliminar el medicamento de la base de datos
+    db.session.delete(medicamento)
+    db.session.commit()
+
+    return redirect(url_for('ver_medicamentos'))
 
 @app.route('/sudadmin')
 @login_required
@@ -771,123 +928,131 @@ def agendar():
      paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
      return render_template('citas.html' ,paciente=paciente )
 
-
 @app.route('/api/guardar_cita', methods=['POST'])
 def guardar_cita():
     data = request.json
-    print("📩 Datos recibidos:", data)  # 🔍 Depuración: Verificar datos entrantes
+    print("📩 Datos recibidos:", data)
 
     try:
-        # 🔍 Obtener ID del paciente desde la sesión o buscar por número de documento
-        paciente_id = session.get('paciente_id')
-        print("📌 Paciente ID en sesión:", paciente_id)
+        # Buscar paciente en la tabla Paciente usando el número de documento
+        paciente = Paciente.query.filter_by(numero_documento=data.get('numero_documento')).first()
+        
+        # Verificar si el paciente existe
+        if not paciente:
+            print("🚨 Paciente no encontrado en la base de datos.")
+            return jsonify({'success': False, 'message': 'Paciente no encontrado'}), 404
 
-        if not paciente_id:
-            paciente = Paciente.query.filter_by(numero_documento=data.get('numero_documento')).first()
-            if not paciente:
-                print("🚨 Paciente no encontrado en la base de datos.")
-                return jsonify({'success': False, 'message': 'Paciente no encontrado'}), 404
-            paciente_id = getattr(paciente, 'usuario_id', paciente.id)  # Verifica si tiene `usuario_id`
-            print("✅ Paciente encontrado, ID:", paciente_id)
+        # Mostrar la información del paciente encontrado para depurar
+        print("📌 Paciente encontrado:", paciente.__dict__)
 
-        # 📌 Verificar si el usuario realmente existe en la tabla `Usuario`
-        usuario = Usuario.query.get(paciente_id)
-        if not usuario:
-            print(f"🚨 No existe un usuario con ID {paciente_id}")
-            return jsonify({'success': False, 'message': f'No existe un usuario con ID {paciente_id}'}), 400
+        # Obtener solo el ID del paciente (evitar usuario_id)
+        paciente_id = paciente.id  # Tomar solo el ID principal del paciente
+        print("✅ ID de paciente obtenido:", paciente_id)
 
-        # 📅 Convertir fecha correctamente
+        # Convertir la fecha de la cita correctamente
         fecha_cita = datetime.strptime(data.get('fecha'), '%Y-%m-%d').date()
         print("✅ Fecha de la cita convertida correctamente:", fecha_cita)
 
-        # 🕒 Convertir hora correctamente
+        # Convertir la hora de la cita
         hora_cita_str = data.get('hora')
-        hora_cita = None
         if hora_cita_str:
             try:
+                # Verificar si la hora está en formato AM/PM o 24 horas
                 if "AM" in hora_cita_str or "PM" in hora_cita_str:
-                    hora_cita = datetime.strptime(hora_cita_str, "%I:%M %p").time()  # Formato 12H AM/PM
+                    hora_cita = datetime.strptime(hora_cita_str, "%I:%M %p").time()
                 else:
-                    hora_cita = datetime.strptime(hora_cita_str, "%H:%M").time()  # Formato 24H
+                    hora_cita = datetime.strptime(hora_cita_str, "%H:%M").time()
                 print("✅ Hora de la cita convertida correctamente:", hora_cita)
             except ValueError:
                 print("🚨 Error: Formato de hora inválido:", hora_cita_str)
                 return jsonify({'success': False, 'message': 'Formato de hora inválido'}), 400
+        else:
+            print("🚨 Error: No se proporcionó una hora válida")
+            return jsonify({'success': False, 'message': 'Debe proporcionar una hora válida'}), 400
 
-        # 🔎 Verificar si ya existe una cita en la misma fecha y hora para **cualquier paciente**
+        # Verificar si ya existe una cita en la misma fecha y hora
         cita_existente = Cita.query.filter_by(fecha=fecha_cita, hora=hora_cita).first()
         if cita_existente:
-            print("🚨 Ya existe una cita en la misma fecha y hora para otro paciente.")
+            print("🚨 Ya existe una cita en la misma fecha y hora.")
             return jsonify({'success': False, 'message': 'Ya existe una cita en esa fecha y hora. Por favor, elija otra hora.'}), 400
 
-        # 🔐 Generar código de confirmación
+        # Generar código de confirmación
         codigo_confirmacion = secrets.token_hex(3).upper()
         print("✅ Código de confirmación generado:", codigo_confirmacion)
 
-        # 🏥 Crear nueva cita
+        # Crear nueva cita
         nueva_cita = Cita(
-            paciente_id=paciente_id,
+            paciente_id=paciente_id,  # Usar solo el ID del paciente
             tipo_servicio=data.get('tipo_servicio'),
             especialidad=data.get('especialidad'),
             tipo_examen=data.get('tipo_examen'),
             motivo=data.get('motivo'),
             fecha=fecha_cita,
-            hora=hora_cita,  # 🔥 Asegurando que sea `time`
+            hora=hora_cita,
             codigo_confirmacion=codigo_confirmacion,
             estado='Programada'
         )
 
-        print("📌 Objeto Cita creado:", nueva_cita.__dict__)  # 🔍 Ver el objeto antes de guardar
+        print("📌 Objeto Cita creado:", nueva_cita.__dict__)
 
+        # Guardar la cita en la base de datos
         db.session.add(nueva_cita)
         db.session.commit()
         print("✅ Cita guardada en la base de datos con ID:", nueva_cita.id)
 
-        # 💾 Formatear hora correctamente para la respuesta
-        hora_correcta = (datetime.min + nueva_cita.hora).time()
-        formatted_hora = hora_correcta.strftime('%H:%M')
+        # Formato seguro para la hora
+        try:
+            if hasattr(nueva_cita.hora, 'strftime'):  # Verifica si tiene el método strftime
+                hora_formateada = nueva_cita.hora.strftime('%H:%M')
+            else:
+                hora_formateada = str(nueva_cita.hora)
+        except Exception as e:
+            print(f"Error al formatear la hora: {e}")
+            hora_formateada = str(nueva_cita.hora)
 
+        # Responder con éxito
         return jsonify({
             'success': True,
             'message': 'Cita guardada correctamente',
             'cita': {
                 'id': nueva_cita.id,
-                'paciente_id': nueva_cita.paciente_id,
+                'paciente_id': nueva_cita.paciente_id,  # Mostrar solo el ID del paciente
                 'tipo_servicio': nueva_cita.tipo_servicio,
                 'especialidad': nueva_cita.especialidad,
                 'tipo_examen': nueva_cita.tipo_examen,
                 'motivo': nueva_cita.motivo,
                 'fecha': nueva_cita.fecha.strftime('%Y-%m-%d'),
-                'hora': formatted_hora,  # Formatear correctamente la hora
+                'hora': hora_formateada,
                 'codigo_confirmacion': nueva_cita.codigo_confirmacion,
                 'estado': nueva_cita.estado
-            },
-            'codigo_confirmacion': codigo_confirmacion
+            }
         })
 
     except Exception as e:
+        # Manejo de errores
         db.session.rollback()
         error_trace = traceback.format_exc()
         print("🚨 Error al guardar la cita:", e)
         print(error_trace)
         return jsonify({'success': False, 'message': 'Error al guardar la cita', 'error': str(e), 'trace': error_trace}), 500
-
+    
+    
 @app.route('/api/verificar_citas', methods=['POST'])
 def verificar_citas():
     data = request.json
     print(f"🔍 Buscando citas para {data.get('tipo_documento')} - {data.get('numero_documento')}")
 
     try:
-        # Buscar el usuario (paciente) en la base de datos
-        usuario = Usuario.query.filter_by(numero_documento=data.get('numero_documento')).first()
-        if not usuario:
-            print("🚨 Usuario no encontrado.")
-            return jsonify({'success': False, 'message': 'Usuario no encontrado'}), 404
+        # Buscar el paciente en la base de datos
+        paciente = Paciente.query.filter_by(numero_documento=data.get('numero_documento')).first()
+        if not paciente:
+            print("🚨 Paciente no encontrado.")
+            return jsonify({'success': False, 'message': 'Paciente no encontrado'}), 404
 
-        print(f"✅ Usuario encontrado con ID: {usuario.id}")
+        print(f"✅ Paciente encontrado con ID: {paciente.id}")
 
         # Buscar citas asociadas al paciente
-        citas = Cita.query.filter_by(paciente_id=usuario.id).order_by(Cita.fecha, Cita.hora).all()
+        citas = Cita.query.filter_by(paciente_id=paciente.id).order_by(Cita.fecha, Cita.hora).all()
 
         if not citas:
             print("📭 No hay citas registradas para este paciente")
@@ -895,13 +1060,13 @@ def verificar_citas():
 
         # Convertir las citas a formato JSON
         citas_json = [{
-    'id': c.id,
-    'fecha': c.fecha.strftime('%Y-%m-%d'),
-    'hora': (datetime.min + c.hora).time().strftime('%H:%M') if isinstance(c.hora, timedelta) else c.hora.strftime('%H:%M'),
-    'tipo_servicio': c.tipo_servicio,
-    'especialidad': c.especialidad,
-    'estado': c.estado
-} for c in citas]
+            'id': c.id,
+            'fecha': c.fecha.strftime('%Y-%m-%d'),
+            'hora': (datetime.min + c.hora).time().strftime('%H:%M') if isinstance(c.hora, timedelta) else c.hora.strftime('%H:%M'),
+            'tipo_servicio': c.tipo_servicio,
+            'especialidad': c.especialidad,
+            'estado': c.estado
+        } for c in citas]
 
         print(f"✅ {len(citas)} citas encontradas.")
         return jsonify({'success': True, 'citas': citas_json}), 200

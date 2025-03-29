@@ -104,10 +104,14 @@
         transform: scale(1.5) !important;
     }
 </style>
-
-<div class="container ">
+<div class="container">
     <h2>📋 Inventario de Medicamentos</h2>
-    <a class="mb-5 mx-auto"  href="{{ url_for('agregar_medicamento') }}" >Agregar Nuevo Medicamento</a>
+
+    <!-- Buscador global -->
+    <input type="text" id="buscador" placeholder="🔍 Buscar medicamentos en toda la tabla..." class="form-control mb-3">
+
+    <a class="mb-5 mx-auto" href="{{ url_for('agregar_medicamento') }}">Agregar Nuevo Medicamento</a>
+
     <div class="table-container">
         <table border="0">
             <thead>
@@ -118,7 +122,6 @@
                     <th>Tipo</th>
                     <th>Concentración</th>
                     <th>Laboratorio</th>
-                    <th>Vencimiento</th>
                     <th>Estado</th>
                     <th>Stock</th>
                     <th>Acciones</th>
@@ -133,49 +136,86 @@
 
 <script>
     $(document).ready(function() {
+        let medicamentosData = [];  // Guardamos la lista original de medicamentos
+
+        function cargarMedicamentos(data) {
+            let rows = "";
+            data.forEach(m => {
+                // Clasificación de stock
+                let stockClass = m.stock < 10 ? 'stock-low' : 
+                                 m.stock < 50 ? 'stock-medium' : 
+                                 'stock-high';
+
+                // Imagen segura
+                let imgSrc = m.imagen_url && m.imagen_url.trim() !== '' 
+                    ? m.imagen_url 
+                    : "/static/medicamentos/default.jpg";
+
+                // Evitar XSS
+                const safeNombre = $('<div>').text(m.nombre).html();
+                const safeTipo = $('<div>').text(m.tipo).html();
+                const safeLaboratorio = $('<div>').text(m.laboratorio).html();
+                const safeEstado = $('<div>').text(m.estado).html();
+                const safeConcentracion = $('<div>').text(m.concentracion).html();
+                const safeStock = $('<div>').text(m.stock).html();
+
+                rows += `
+                    <tr>
+                        <td>${m.id}</td>
+                        <td><img src="${imgSrc}" alt="Imagen" width="100px"></td>
+                        <td>${safeNombre}</td>
+                        <td>${safeTipo}</td>
+                        <td>${safeConcentracion}</td>
+                        <td>${safeLaboratorio}</td>
+                        <td>${safeEstado}</td>
+                        <td class="${stockClass}">${safeStock}</td>
+                        <td>
+                            <a href="/editar_medicamento/${m.id}" class="edit-link text-decoration-none">✏️ Editar</a>
+                            <a href="/eliminar_medicamento/${m.id}" class="delete-link text-decoration-none text-danger" 
+                               onclick="return confirm('¿Estás seguro de eliminar este medicamento?');">🗑️ Eliminar</a>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Insertar filas en la tabla
+            $("#medicamentos-table").html(rows);
+        }
+
+        // Cargar medicamentos con AJAX
         $.ajax({
             url: "/dashboard_farmacia/medicamentos",
             method: "GET",
             dataType: "json",
             success: function(response) {
-                if (response.status === "success") {
-                    let rows = "";
-                    response.medicamentos.forEach(m => {
-                        let stockClass = 'stock-high';
-                        if (m.stock < 10) stockClass = 'stock-low';
-                        else if (m.stock < 50) stockClass = 'stock-medium';
-                        let imgSrc = m.imagen_url ? m.imagen_url : "/static/medicamentos/default.jpg";
-    
-                        rows += `
-                        <tr>
-                            <td>${m.id}</td>
-                            <td>
-                                <img src="${imgSrc}" alt="Imagen" width="100px">
-                            </td>
-                            <td>${m.nombre}</td>
-                            <td>${m.tipo}</td>
-                            <td>${m.concentracion}</td>
-                            <td>${m.laboratorio}</td>
-                            <td>${m.fecha_vencimiento}</td>
-                            <td>${m.estado}</td>
-                            <td class="${stockClass}">${m.stock}</td>
-                            <td>
-                                <a href="/editar_medicamento/${m.id}" class="edit-link text-decoration-none">✏️ Editar</a>
-                                <a href="/borrar_medicamento/${m.id}" class="delete-link text-decoration-none text-danger "  onclick="return confirm('¿Estás seguro de eliminar este medicamento?');">🗑️ Borrar</a>
-                            </td>
-                        </tr>
-                    `;
-                    });
-                    $("#medicamentos-table").html(rows);
+                if (response && response.status === "success" && response.medicamentos) {
+                    medicamentosData = response.medicamentos;  // Guardamos los datos originales
+                    cargarMedicamentos(medicamentosData);  // Mostramos la tabla
+                } else {
+                    console.log("No se encontraron medicamentos o hubo un error en la respuesta");
+                    $("#medicamentos-table").html('<tr><td colspan="10">No hay medicamentos disponibles</td></tr>');
                 }
             },
-            error: function(error) {
-                console.log("Error al obtener los medicamentos", error);
+            error: function(xhr, status, error) {
+                console.error("Error al obtener los medicamentos:", error);
+                $("#medicamentos-table").html('<tr><td colspan="10">Error al cargar los medicamentos</td></tr>');
             }
         });
+
+        // Filtro global en toda la tabla
+        $("#buscador").on("keyup", function() {
+            let valor = $(this).val().toLowerCase();
+
+            let filtrados = medicamentosData.filter(m => {
+                return Object.values(m).some(val => 
+                    String(val).toLowerCase().includes(valor)
+                );
+            });
+
+            cargarMedicamentos(filtrados);
+        });
     });
-    
-  
 </script>
+
 
 {% endblock %}

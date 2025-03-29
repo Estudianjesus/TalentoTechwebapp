@@ -1,0 +1,152 @@
+{% extends "admin/admin_dashboard.html" %}
+{% block content %}
+
+
+<style>
+    /* Modern, Clean Table Design */
+    #tabla-citas {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    #tabla-citas thead {
+        background-color: #2c3e50;
+        color: white;
+    }
+
+    #tabla-citas thead tr th {
+        padding: 15px 20px;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        border-bottom: 2px solid #34495e;
+    }
+
+    #tabla-citas tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    #tabla-citas tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    #tabla-citas tbody tr:hover {
+        background-color: #e9ecef;
+    }
+
+    #tabla-citas tbody td {
+        padding: 12px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        color: #2c3e50;
+    }
+
+    /* Status Styling */
+    .estado-pendiente { color: #f39c12; font-weight: bold; }
+    .estado-confirmada { color: #27ae60; font-weight: bold; }
+    .estado-cancelada { color: #e74c3c; font-weight: bold; }
+
+    /* Action Buttons */
+    .acciones-cita {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-accion {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        color: #2c3e50;
+        text-decoration: none;
+    }
+
+    .btn-accion:hover {
+        transform: scale(1.1);
+    }
+
+    .btn-editar:hover {
+        background-color: rgba(41, 128, 185, 0.1);
+        color: #2980b9;
+    }
+
+    .btn-cancelar:hover {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+</style>
+<h1>Panel de Administración de Citas</h1>
+    <a href="{{url_for('historial_citas')}}">Ver Historial de Citas</a>
+<!-- Tabla para mostrar las citas -->
+<table border="1" id="tabla-citas">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre del Paciente</th>
+            <th>Tipo de Servicio</th>
+            <th>Especialidad</th>
+            <th>Fecha y Hora</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Las citas se llenarán aquí dinámicamente -->
+    </tbody>
+</table>
+
+<script>
+    // Función para cargar las citas mediante AJAX
+    function cargarCitas() {
+        $.ajax({
+            url: '/admin/cita',  // El endpoint en Flask
+            type: 'GET',
+            success: function(data) {
+                // Limpiar el contenido actual de la tabla
+                $('#tabla-citas tbody').empty();
+
+                // Iterar sobre las citas y agregarlas a la tabla
+                data.forEach(function(cita) {
+                    var fila = `<tr>
+                        <td>${cita.id}</td>
+                        <td>${cita.nombre_paciente}</td>
+                        <td>${cita.tipo_servicio}</td>
+                        <td>${cita.especialidad}</td>
+                        <td>${cita.fecha} ${cita.hora}</td>
+                        <td>${cita.estado}</td>
+                        <td>
+                           <a href="/atender_cita/${cita.id}" class=" btn-success text-decoration-none">
+    ✏️ Atender
+</a>
+                            <a href="/cancelar_cita/${cita.id}" class="text-decoration-none text-danger" 
+                               onclick="return confirm('¿Estás seguro de cancelar esta cita?');" title="Cancelar">
+                                <i class="fas fa-trash-alt"></i> 
+                            </a>
+                        </td>
+                    </tr>`;
+                    $('#tabla-citas tbody').append(fila);
+                });
+            },
+            error: function(error) {
+                console.log('Error al cargar las citas:', error);
+            }
+        });
+    }
+
+    // Cargar las citas cuando se carga la página
+    $(document).ready(function() {
+        cargarCitas();
+    });
+</script>
+
+{% endblock %}

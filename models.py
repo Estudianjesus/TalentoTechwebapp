@@ -4,6 +4,7 @@ from sqlalchemy import CheckConstraint, Column, Date, Integer, String, Text, fun
 from database import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.orm import relationship
 
 class Usuario(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -72,8 +73,9 @@ class solicitudes_afiliacion(db.Model):
 
     
 class Cita(db.Model):
+    __tablename__ = 'cita'
     id = db.Column(db.Integer, primary_key=True)
-    paciente_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'), nullable=False)  # Referencia correcta
     tipo_servicio = db.Column(db.String(50), nullable=False)
     especialidad = db.Column(db.String(50))
     tipo_examen = db.Column(db.String(50))
@@ -81,10 +83,11 @@ class Cita(db.Model):
     fecha = db.Column(db.Date, nullable=False)
     hora = db.Column(db.String(20), nullable=False)
     codigo_confirmacion = db.Column(db.String(20), nullable=False)
-    estado = db.Column(db.String(20), default='Programada')
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    estado = db.Column(db.Enum('Pendiente', 'Programada','Confirmada', 'Cancelada', 'Atendida'), default='Progrmada')
-    
+    estado = db.Column(db.Enum('Pendiente', 'Programada','Confirmada', 'Cancelada', 'Atendida'), default='Programada')
+
+    # Relación con Paciente
+    paciente = db.relationship('Paciente', backref='citas')
 
     def to_dict(self):
         return {
@@ -98,7 +101,32 @@ class Cita(db.Model):
             'hora': self.hora,
             'codigo_confirmacion': self.codigo_confirmacion,
             'estado': self.estado
-        }    
+        }
+        
+class HistorialCita(db.Model):
+    __tablename__ = 'historial_cita'
+
+    id = db.Column(db.Integer, primary_key=True)
+    paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'), nullable=False)  # Corregir la referencia
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+    tipo_servicio = db.Column(db.String(255), nullable=False)
+    especialidad = db.Column(db.String(255), nullable=False)
+    estado = db.Column(db.String(50), nullable=False)
+
+        
+class AtencionCita(db.Model):
+    __tablename__ = 'atencion_cita'
+    id = db.Column(db.Integer, primary_key=True)
+    cita_id = db.Column(db.Integer, db.ForeignKey('cita.id'))   # clave foránea
+    medicamento_id = db.Column(db.Integer, db.ForeignKey('medicamento.id'), nullable=False)
+    recomendacion = db.Column(db.Text)
+    indicacion = db.Column(db.String(255), nullable=False)  # Nuevo campo para la indicación
+    fecha_atencion = db.Column(db.Date, nullable=False, default=func.current_date())
+   
+    cita = db.relationship('Cita', backref='atenciones')  # Relación con la tabla Cita
+   
+
 
 
 class Medicamento(db.Model):
@@ -170,7 +198,9 @@ class Paciente(db.Model):
     ficha_sisben = db.Column(db.String(50), nullable=True)
     fecha_solicitud = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)  # Fecha automática
     imagen_usuario = db.Column(db.String(100), nullable=True)
+    
     usuario = db.relationship('Usuario', backref='pacientes', lazy=True)
+    historial_citas = db.relationship('HistorialCita', backref='paciente', lazy=True) 
 
 def __init__(self, usuario_id, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
              tipo_documento, numero_documento, fecha_expedicion, fecha_nacimiento, correo, telefono, direccion, departamento,

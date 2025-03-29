@@ -1,0 +1,73 @@
+{% extends "admin/admin_dashboard.html" %}
+{% block content %}
+
+<h1>Atender Cita: {{ cita.nombre_paciente }}</h1>
+
+<form method="POST">
+
+    <!-- Campo para la recomendación -->
+    <div class="form-group mb-3">
+        <label for="recomendacion">Recomendación para la Cita:</label>
+        <textarea name="recomendacion" id="recomendacion" class="form-control" rows="4" required 
+                  placeholder="Escriba una recomendación médica para el paciente."></textarea>
+    </div>
+
+    <!-- Selección de Medicamentos -->
+    <div class="form-group mb-3">
+        <label>Seleccionar Medicamentos:</label>
+        <div id="medicamentos-container">
+            <div class="medicamento-row d-flex align-items-center mb-2">
+                <select name="medicamentos[]" class="form-control me-2" required>
+                    <option value="">Seleccione un medicamento</option>
+                    {% for medicamento in medicamentos %}
+                        <option value="{{ medicamento.id }}">
+                            {{ medicamento.nombre }} - {{ medicamento.presentacion }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="indicaciones[]" class="form-control" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
+                <button type="button" class="btn btn-danger btn-sm ms-2 remove-medicamento">X</button>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm mt-2" id="add-medicamento">Añadir otro medicamento</button>
+    </div>
+
+    <!-- Botón para guardar -->
+    <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-success">Atender y Asignar Medicamentos</button>
+    </div>
+
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("add-medicamento").addEventListener("click", function() {
+        let container = document.getElementById("medicamentos-container");
+        let newRow = document.createElement("div");
+        newRow.classList.add("medicamento-row", "d-flex", "align-items-center", "mb-2");
+
+        newRow.innerHTML = `
+            <select name="medicamentos[]" class="form-control me-2" required>
+                <option value="">Seleccione un medicamento</option>
+                {% for medicamento in medicamentos %}
+                    <option value="{{ medicamento.id }}">
+                        {{ medicamento.nombre }} - {{ medicamento.presentacion }}
+                    </option>
+                {% endfor %}
+            </select>
+            <input type="text" name="indicaciones[]" class="form-control" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
+            <button type="button" class="btn btn-danger btn-sm ms-2 remove-medicamento">X</button>
+        `;
+
+        container.appendChild(newRow);
+    });
+
+    document.getElementById("medicamentos-container").addEventListener("click", function(event) {
+        if (event.target.classList.contains("remove-medicamento")) {
+            event.target.parentElement.remove();
+        }
+    });
+});
+</script>
+
+{% endblock %}
