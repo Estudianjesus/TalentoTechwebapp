@@ -1,0 +1,112 @@
+{% extends 'usuario_dasword.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Mis Medicamentos Recetados</h2>
+    
+    <div id="listaMedicamentos" class="mt-4">
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    cargarMedicamentos();
+});
+
+function cargarMedicamentos() {
+    fetch('/api/medicamentos_recetados')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                mostrarMedicamentos(data.medicamentos_recetados);
+            } else {
+                document.getElementById('listaMedicamentos').innerHTML = 
+                    `<div class="alert alert-danger">${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('listaMedicamentos').innerHTML = 
+                '<div class="alert alert-danger">Error al cargar los medicamentos. Intente nuevamente más tarde.</div>';
+        });
+}
+
+function mostrarMedicamentos(medicamentos) {
+    if (!medicamentos || medicamentos.length === 0) {
+        document.getElementById('listaMedicamentos').innerHTML = 
+            '<div class="alert alert-info">No tiene medicamentos recetados.</div>';
+        return;
+    }
+    
+    let html = '<div class="row">';
+    
+    medicamentos.forEach(med => {
+        html += `
+            <div class="col-md-6 mb-4">
+                <div class="card ${med.stock > 0 ? 'border-success' : 'border-warning'}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">${med.nombre}</h5>
+                        <span class="badge ${med.stock > 0 ? 'bg-success' : 'bg-warning'}">
+                            ${med.stock > 0 ? 'Disponible' : 'No disponible'}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Indicación:</strong> ${med.indicacion}</p>
+                        ${med.recomendacion ? `<p><strong>Recomendación:</strong> ${med.recomendacion}</p>` : ''}
+                        <p><strong>Recetado:</strong> ${med.fecha_receta}</p>
+                        <p><strong>Especialidad:</strong> ${med.especialidad}</p>
+                        <p><strong>Stock:</strong> <span id="stock-${med.medicamento_id}">${med.stock}</span></p>
+                        ${med.stock > 0 ? 
+                            `<button class="btn btn-primary btn-sm" onclick="retirarMedicamento(${med.medicamento_id})">Tomar Medicamento</button>` 
+                            : '<div class="alert alert-warning">Stock agotado</div>'}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    document.getElementById('listaMedicamentos').innerHTML = html;
+}
+
+function retirarMedicamento(medicamento_id) {
+    let cantidad = parseInt(prompt("Ingrese la cantidad a retirar:", 1));
+    if (!cantidad || cantidad <= 0) {
+        alert("Cantidad inválida.");
+        return;
+    }
+
+    fetch('/api/retirar_medicamento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ medicamento_id, cantidad })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let stockElement = document.getElementById(`stock-${medicamento_id}`);
+            if (stockElement) {
+                stockElement.innerText = data.nuevo_stock;
+            }
+
+            // Recargar medicamentos si el stock cambia
+            cargarMedicamentos();
+            
+            alert(data.message);
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al retirar medicamento.');
+    });
+}
+</script>
+
+{% endblock %}

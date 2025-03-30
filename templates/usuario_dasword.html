@@ -293,13 +293,15 @@
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="quick-action">
-                            <div class="icon-container">
-                                <i class="fas fa-prescription-bottle-alt"></i>
-                            </div>
-                            <p>Mis Medicamentos</p>
-                        </div>
-                    </div>
+                      <a onclick="window.location.href='{{ url_for('mis_medicamentos_view') }}'" class="text-decoration-none">
+                          <div class="quick-action">
+                              <div class="icon-container">
+                                  <i class="fas fa-prescription-bottle-alt"></i>
+                              </div>
+                              <p>Mis Medicamentos</p>
+                          </div>
+                      </a>
+                  </div>
                     <div class="col-6 col-md-3">
                         <div class="quick-action">
                             <div class="icon-container">

@@ -12,7 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
 from database import db
-from models import AtencionCita, Cita, HistorialCita, Medicamento, solicitudes_afiliacion, Usuario, Paciente
+from models import AtencionCita, Cita, HistorialCita, Medicamento, RegistroRetiroMedicamento, solicitudes_afiliacion, Usuario, Paciente
 from flask_wtf import FlaskForm
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -1030,6 +1030,7 @@ def guardar_cita():
     
     
 @app.route('/api/verificar_citas', methods=['POST'])
+@paciente_required
 def verificar_citas():
     data = request.json
     print(f"🔍 Buscando citas para {data.get('tipo_documento')} - {data.get('numero_documento')}")
@@ -1069,6 +1070,7 @@ def verificar_citas():
 
 
 @app.route('/api/citas_paciente')
+@paciente_required
 def citas_paciente():
     print("======= INICIO DE API CITAS_PACIENTE =======")
     print("IP de solicitud:", request.remote_addr)
@@ -1161,8 +1163,10 @@ def citas_paciente():
             'message': f'Error interno: {str(e)}', 
             'citas': []
         })
+        
+        
 @app.route('/api/cancelar_cita/<int:cita_id>', methods=['DELETE'])
-@login_required
+@paciente_required
 def cancelar_cita(cita_id):
     try:
         paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
@@ -1184,8 +1188,113 @@ def cancelar_cita(cita_id):
         return jsonify({'success': False, 'message': f'Error interno: {str(e)}'}), 500
 
 
+@app.route('/mis-medicamentos')
+def mis_medicamentos_view():
+    """
+    Ruta para mostrar la página de medicamentos recetados del paciente.
+    Esta página consumirá la API de medicamentos_recetados mediante JavaScript.
+    """
+    # Primero verificamos y obtenemos el paciente asociado al usuario actual
+    paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+    
+    if not paciente:
+        flash("No se encontró un paciente asociado a su cuenta.", "danger")
+        return redirect(url_for('dashboard'))
+    
+    # Si encontramos el paciente, pasamos los datos a la plantilla
+    return render_template('ver_medicamento_paciente.html', 
+                          titulo="Mis Medicamentos",
+                          seccion_activa="medicamentos",
+                          paciente=paciente)
+    
+@app.route('/api/medicamentos_recetados')
+@paciente_required
+def medicamentos_recetados():
+    print("======= INICIO DE API MEDICAMENTOS_RECETADOS =======")
+    
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Usuario no autenticado.', 'medicamentos': []})
 
+    try:
+        paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+        if not paciente:
+            return jsonify({'success': False, 'message': 'Paciente no encontrado.', 'medicamentos': []})
 
+        citas = HistorialCita.query.filter_by(paciente_id=paciente.id).all()
+        cita_ids = [cita.id for cita in citas]
+        atenciones = AtencionCita.query.filter(AtencionCita.cita_id.in_(cita_ids)).all()
+
+        medicamentos_recetados = []
+
+        for atencion in atenciones:
+            medicamento = db.session.get(Medicamento, atencion.medicamento_id)  # ✅ Corrección del warning
+            if not medicamento:
+                continue
+
+            stock = medicamento.stock if medicamento.stock is not None else 0
+            disponible = stock > 0
+
+            medicamentos_recetados.append({
+                'medicamento_id': medicamento.id,
+                'nombre': medicamento.nombre,
+                'descripcion': medicamento.descripcion,
+                'indicacion': atencion.indicacion,
+                'recomendacion': atencion.recomendacion,
+                'fecha_receta': atencion.fecha_atencion.strftime('%Y-%m-%d'),
+                'especialidad': getattr(atencion, 'especialidad', 'No especificado'),  # ✅ Evita el error si no existe
+                'disponible': disponible,
+                'stock': stock
+            })
+
+        return jsonify({'success': True, 'medicamentos_recetados': medicamentos_recetados})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': 'Error interno.', 'medicamentos': []})
+
+@app.route('/api/retirar_medicamento', methods=['POST'])
+
+def retirar_medicamento():
+    try:
+        data = request.json
+        medicamento_id = data.get('medicamento_id')
+        cantidad = data.get('cantidad', 1)
+
+        # Verificar que el paciente está registrado
+        paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+        if not paciente:
+            return jsonify({'success': False, 'message': 'Paciente no encontrado'})
+
+        # Obtener el medicamento
+        medicamento = Medicamento.query.get(medicamento_id)
+        if not medicamento:
+            return jsonify({'success': False, 'message': 'Medicamento no encontrado'})
+
+        # Verificar si hay suficiente stock
+        if medicamento.stock < cantidad:
+            return jsonify({'success': False, 'message': 'Stock insuficiente'})
+
+        # Restar el medicamento del stock
+        medicamento.stock -= cantidad
+        db.session.add(medicamento)
+
+        # Registrar el retiro en la base de datos
+        retiro = RegistroRetiroMedicamento(
+            paciente_id=paciente.id,
+            medicamento_id=medicamento.id,
+            cantidad=cantidad,
+            fecha_retiro=datetime.utcnow()
+        )
+        db.session.add(retiro)
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Medicamento retirado correctamente', 'nuevo_stock': medicamento.stock})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Error al retirar medicamento: {str(e)}'})
+    
 @app.route('/cambiar_contrasena')
 def cambiar_contrasena():
     return render_template('cambiar_contrasena.html')

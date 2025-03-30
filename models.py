@@ -163,6 +163,22 @@ class Medicamento(db.Model):
             'imagen_url': self.imagen_url  
         }
 
+class RegistroRetiroMedicamento(db.Model):
+    __tablename__ = 'registro_retiro_medicamento'
+    id = db.Column(db.Integer, primary_key=True)
+    paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'), nullable=False)  # Nombre correcto de la tabla
+    medicamento_id = db.Column(db.Integer, db.ForeignKey('medicamento.id'), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False, default=1)
+    fecha_retiro = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    paciente = db.relationship("Paciente", back_populates="retiros")
+    medicamento = db.relationship('Medicamento', backref='retiros')
+
+    def __repr__(self):
+        return f'<RegistroRetiroMedicamento {self.id}>'
+
+
 class Notificacion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
@@ -196,35 +212,38 @@ class Paciente(db.Model):
     zona = db.Column(db.String(50), nullable=False)
     sexo = db.Column(db.String(10), nullable=False)
     ficha_sisben = db.Column(db.String(50), nullable=True)
-    fecha_solicitud = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)  # Fecha automática
+    fecha_solicitud = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     imagen_usuario = db.Column(db.String(100), nullable=True)
     
+    # Relaciones
+    retiros = db.relationship("RegistroRetiroMedicamento", back_populates="paciente")
     usuario = db.relationship('Usuario', backref='pacientes', lazy=True)
-    historial_citas = db.relationship('HistorialCita', backref='paciente', lazy=True) 
+    historial_citas = db.relationship('HistorialCita', backref='paciente', lazy=True)
 
-def __init__(self, usuario_id, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
-             tipo_documento, numero_documento, fecha_expedicion, fecha_nacimiento, correo, telefono, direccion, departamento,
-             zona, sexo, ficha_sisben, imagen_usuario=None):  # <-- Ahora es opcional
-    self.usuario_id = usuario_id
-    self.primer_nombre = primer_nombre
-    self.segundo_nombre = segundo_nombre
-    self.primer_apellido = primer_apellido
-    self.segundo_apellido = segundo_apellido
-    self.tipo_documento = tipo_documento
-    self.numero_documento = numero_documento
-    self.fecha_expedicion = fecha_expedicion
-    self.fecha_nacimiento = fecha_nacimiento
-    self.correo = correo
-    self.telefono = telefono
-    self.direccion = direccion
-    self.departamento = departamento
-    self.zona = zona
-    self.sexo = sexo
-    self.ficha_sisben = ficha_sisben
-    self.imagen_usuario = imagen_usuario 
+    def __init__(self, usuario_id, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
+                 tipo_documento, numero_documento, fecha_expedicion, fecha_nacimiento, correo, telefono, direccion, departamento,
+                 zona, sexo, ficha_sisben, imagen_usuario=None):  # imagen_usuario ahora es opcional
+        self.usuario_id = usuario_id
+        self.primer_nombre = primer_nombre
+        self.segundo_nombre = segundo_nombre
+        self.primer_apellido = primer_apellido
+        self.segundo_apellido = segundo_apellido
+        self.tipo_documento = tipo_documento
+        self.numero_documento = numero_documento
+        self.fecha_expedicion = fecha_expedicion
+        self.fecha_nacimiento = fecha_nacimiento
+        self.correo = correo
+        self.telefono = telefono
+        self.direccion = direccion
+        self.departamento = departamento
+        self.zona = zona
+        self.sexo = sexo
+        self.ficha_sisben = ficha_sisben
+        self.imagen_usuario = imagen_usuario 
 
     def __repr__(self):
         return f'<Paciente {self.primer_nombre} {self.primer_apellido}>'
+
 
 class RecetaMedica(db.Model):
     id = db.Column(db.Integer, primary_key=True)
