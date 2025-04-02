@@ -2,12 +2,30 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Mis Medicamentos Recetados</h2>
-    
-    <div id="listaMedicamentos" class="mt-4">
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Cargando...</span>
+    <div class="receta-medica border rounded p-4 bg-white">
+        <h2 class="text-center">Fórmula Médica</h2>
+        <div class="text-end">
+            <button id="btnImprimir" class="btn btn-secondary" onclick="imprimirReceta()">Imprimir</button>
+        </div>
+        
+        <div id="contenidoReceta">
+            <div class="text-center">
+                <h4>CLÍNICA SALUD INTEGRAL</h4>
+                <p><strong>Fecha de Atención:</strong> <span id="fechaAtencion">Cargando...</span></p>
+            </div>
+            
+            <div class="datos-paciente">
+                <p><strong>Paciente:</strong> {{ paciente.primer_nombre }}</p>
+                <p><strong>Tipo de Cédula:</strong> {{paciente.tipo_documento}}</p>
+                <p><strong>Número de Cédula:</strong> {{paciente.numero_documento}}</p>
+            </div>
+            
+            <div id="listaMedicamentos">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -23,19 +41,27 @@ function cargarMedicamentos() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Mostrar la fecha de atención en la parte superior
+                if (data.medicamentos_recetados && data.medicamentos_recetados.length > 0) {
+                    document.getElementById('fechaAtencion').textContent = data.medicamentos_recetados[0].fecha_atencion;
+                } else {
+                    document.getElementById('fechaAtencion').textContent = "No disponible";
+                }
+                
                 mostrarMedicamentos(data.medicamentos_recetados);
             } else {
                 document.getElementById('listaMedicamentos').innerHTML = 
                     `<div class="alert alert-danger">${data.message}</div>`;
+                document.getElementById('fechaAtencion').textContent = "No disponible";
             }
         })
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('listaMedicamentos').innerHTML = 
                 '<div class="alert alert-danger">Error al cargar los medicamentos. Intente nuevamente más tarde.</div>';
+            document.getElementById('fechaAtencion').textContent = "Error al cargar";
         });
 }
-
 function mostrarMedicamentos(medicamentos) {
     if (!medicamentos || medicamentos.length === 0) {
         document.getElementById('listaMedicamentos').innerHTML = 
@@ -43,70 +69,72 @@ function mostrarMedicamentos(medicamentos) {
         return;
     }
     
-    let html = '<div class="row">';
+    // Agrupar medicamentos duplicados
+    let medicamentosAgrupados = {};
     
     medicamentos.forEach(med => {
+        // Crear una clave única basada en el nombre del medicamento y la indicación
+        const clave = `${med.nombre}-${med.indicacion}`;
+        
+        if (!medicamentosAgrupados[clave]) {
+            medicamentosAgrupados[clave] = {
+                ...med,
+                cantidad: 1
+            };
+        } else {
+            // Incrementar la cantidad si ya existe
+            medicamentosAgrupados[clave].cantidad += 1;
+            // NO sumamos el stock porque es la disponibilidad real en inventario
+            // medicamentosAgrupados[clave].stock += med.stock; <- Esta línea se elimina
+        }
+    });
+    
+    let html = '<table class="table table-hover table-striped mt-3">';
+    html += '<thead class="table-primary"><tr><th>Medicamento</th><th>Indicación</th><th>Cantidad</th><th>Fecha Receta</th><th>Válido Hasta</th><th>disponibilidad</th></tr></thead><tbody>';
+    
+    // Convertir el objeto agrupado de nuevo a array para iterar
+    Object.values(medicamentosAgrupados).forEach(med => {
+        let fechaVencimiento = new Date(med.fecha_atencion);
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + 30);
+
         html += `
-            <div class="col-md-6 mb-4">
-                <div class="card ${med.stock > 0 ? 'border-success' : 'border-warning'}">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">${med.nombre}</h5>
-                        <span class="badge ${med.stock > 0 ? 'bg-success' : 'bg-warning'}">
-                            ${med.stock > 0 ? 'Disponible' : 'No disponible'}
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Indicación:</strong> ${med.indicacion}</p>
-                        ${med.recomendacion ? `<p><strong>Recomendación:</strong> ${med.recomendacion}</p>` : ''}
-                        <p><strong>Recetado:</strong> ${med.fecha_receta}</p>
-                        <p><strong>Especialidad:</strong> ${med.especialidad}</p>
-                        <p><strong>Stock:</strong> <span id="stock-${med.medicamento_id}">${med.stock}</span></p>
-                        ${med.stock > 0 ? 
-                            `<button class="btn btn-primary btn-sm" onclick="retirarMedicamento(${med.medicamento_id})">Tomar Medicamento</button>` 
-                            : '<div class="alert alert-warning">Stock agotado</div>'}
-                    </div>
-                </div>
-            </div>
+            <tr>
+                <td><strong>${med.nombre}</strong></td>
+                <td>${med.indicacion}</td>
+                <td>${med.cantidad}</td>
+                <td>${med.fecha_atencion}</td>
+                <td>${fechaVencimiento.toLocaleDateString()}</td>
+                <td>${med.stock > 0 ? med.stock : '<span class="text-danger">Agotado</span>'}</td>
+            </tr>
         `;
     });
     
-    html += '</div>';
+    html += '</tbody></table>';
     document.getElementById('listaMedicamentos').innerHTML = html;
 }
 
-function retirarMedicamento(medicamento_id) {
-    let cantidad = parseInt(prompt("Ingrese la cantidad a retirar:", 1));
-    if (!cantidad || cantidad <= 0) {
-        alert("Cantidad inválida.");
-        return;
-    }
-
-    fetch('/api/retirar_medicamento', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ medicamento_id, cantidad })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            let stockElement = document.getElementById(`stock-${medicamento_id}`);
-            if (stockElement) {
-                stockElement.innerText = data.nuevo_stock;
-            }
-
-            // Recargar medicamentos si el stock cambia
-            cargarMedicamentos();
-            
-            alert(data.message);
-        } else {
-            alert(data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al retirar medicamento.');
-    });
+function imprimirReceta() {
+    let contenido = document.getElementById('contenidoReceta').innerHTML;
+    let ventanaImpresion = window.open('', '_blank');
+    ventanaImpresion.document.write('<html><head><title>Receta Médica</title><style>');
+    ventanaImpresion.document.write(`
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .receta-medica { border: 2px solid #000; padding: 20px; width: 90%; margin: auto; }
+        .datos-paciente, .datos-doctor { margin-top: 20px; font-size: 1.1em; border-bottom: 2px dashed black; padding-bottom: 10px; }
+        .tabla-medicamentos { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .tabla-medicamentos th, .tabla-medicamentos td { border: 1px solid black; padding: 8px; text-align: left; }
+        .tabla-medicamentos th { background-color: #f2f2f2; }
+    `);
+    ventanaImpresion.document.write('</style></head><body>');
+    ventanaImpresion.document.write(contenido);
+    ventanaImpresion.document.write('</body></html>');
+    ventanaImpresion.document.close();
+    ventanaImpresion.print();
 }
 </script>
 
+<style>
+.receta-medica { background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 10px; }
+.table-hover tbody tr:hover { background-color: #f1f1f1; }
+</style>
 {% endblock %}

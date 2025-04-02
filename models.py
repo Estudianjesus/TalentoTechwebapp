@@ -123,7 +123,8 @@ class AtencionCita(db.Model):
     recomendacion = db.Column(db.Text)
     indicacion = db.Column(db.String(255), nullable=False)  # Nuevo campo para la indicación
     fecha_atencion = db.Column(db.Date, nullable=False, default=func.current_date())
-   
+    cantidad_recetada = db.Column(db.Integer, default=1)
+     
     cita = db.relationship('Cita', backref='atenciones')  # Relación con la tabla Cita
    
 
@@ -253,5 +254,6 @@ class RecetaMedica(db.Model):
     cantidad = db.Column(db.Integer, nullable=False)
     indicaciones = db.Column(db.Text, nullable=False)
     fecha_prescripcion = db.Column(db.DateTime, default=datetime.utcnow)
+    
 
 

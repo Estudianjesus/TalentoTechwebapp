@@ -28,8 +28,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta_segura'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@127.0.0.1:3307/eps_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config["SESSION_PERMANENT"] = True
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+app.config['SESSION_PERMANENT'] = True
 
 
 # 🔹 Inicializar la base de datos con la aplicación
@@ -68,11 +68,13 @@ def is_safe_url(target):
 @app.route('/login_admin', methods=['GET', 'POST'])
 def login_admin():
     if current_user.is_authenticated:
+        # Redirigir si ya está autenticado
         rutas = {
             "Administrador": url_for('admin'),
             "Subadministrador": url_for('sudadmin'),
             "Farmacia": url_for('dashboard_farmacia')
         }
+        return redirect(rutas.get(current_user.rol, url_for('login_admin')))
 
     if request.method == 'GET':
         return render_template('login_admin.html')
@@ -93,6 +95,9 @@ def login_admin():
         return jsonify({"status": "error", "message": "Contraseña incorrecta", "clear_fields": True}), 401
 
     login_user(user)
+    session.permanent = True
+
+    print(f"✅ Usuario logueado: {user.usuario}, Rol: {user.rol}, Sesión permanente: {session.permanent}")
     flash('Inicio de sesión exitoso', 'success')
 
     rutas = {
@@ -104,7 +109,6 @@ def login_admin():
     return jsonify({"status": "success", "redirect_url": rutas.get(user.rol, url_for('login_admin')), "clear_fields": False})
 
 
-   
 
 @app.route('/admin')
 @login_required
@@ -617,9 +621,7 @@ def agregar_medicamento():
             db.session.rollback()
             flash(f'❌ Error al agregar medicamento: {str(e)}', 'danger')
             return redirect(url_for('agregar_medicamento'))
-        
-        finally:
-            db.session.close()  # Cierra la sesión correctamente
+      
 
     return render_template('farmacia/agregar_medicamento.html')
 
@@ -875,19 +877,12 @@ def login_usuarios():
         print(f"❌ Error en el login: {str(e)}")
         return jsonify({"status": "error", "message": f"Error interno: {str(e)}"}), 500
 
-
-@app.before_request
-def renovar_sesion():
-    session.modified = True
-
 def paciente_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash("Debes iniciar sesión.", "danger")
             return redirect(url_for("login_usuarios"))
-
-        print(f"Usuario autenticado: {current_user.numero_documento}, Rol: {current_user.rol}")  # 🔍 Verifica el rol
 
         if current_user.rol.strip().lower() != "paciente":
             flash("Acceso denegado.", "danger")
@@ -896,7 +891,6 @@ def paciente_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
-
 
 
 @app.route('/portal_paciente')
@@ -1190,96 +1184,114 @@ def cancelar_cita(cita_id):
 
 @app.route('/mis-medicamentos')
 def mis_medicamentos_view():
-    """
-    Ruta para mostrar la página de medicamentos recetados del paciente.
-    Esta página consumirá la API de medicamentos_recetados mediante JavaScript.
-    """
-    # Primero verificamos y obtenemos el paciente asociado al usuario actual
+    # Consultar al paciente asociado al usuario actual
     paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
     
     if not paciente:
         flash("No se encontró un paciente asociado a su cuenta.", "danger")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('login_usuarios'))
     
-    # Si encontramos el paciente, pasamos los datos a la plantilla
-    return render_template('ver_medicamento_paciente.html', 
-                          titulo="Mis Medicamentos",
-                          seccion_activa="medicamentos",
-                          paciente=paciente)
+    # Consultar al usuario que atendió la cita
+    usuario = Usuario.query.filter_by(id=current_user.id).first()
+
+    if not usuario:
+        flash("No se encontró información del usuario que atendió la cita.", "warning")
     
+    return render_template('ver_medicamento_paciente.html', titulo="Mis Medicamentos", seccion_activa="medicamentos",
+        paciente=paciente,
+        usuario=usuario
+    )
+
 @app.route('/api/medicamentos_recetados')
-@paciente_required
 def medicamentos_recetados():
     print("======= INICIO DE API MEDICAMENTOS_RECETADOS =======")
     
     if not current_user.is_authenticated:
-        return jsonify({'success': False, 'message': 'Usuario no autenticado.', 'medicamentos': []})
-
+        return jsonify({'success': False, 'message': 'Usuario no autenticado.', 'medicamentos_recetados': []})
+    
     try:
         paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
         if not paciente:
-            return jsonify({'success': False, 'message': 'Paciente no encontrado.', 'medicamentos': []})
-
+            return jsonify({'success': False, 'message': 'Paciente no encontrado.', 'medicamentos_recetados': []})
+        
         citas = HistorialCita.query.filter_by(paciente_id=paciente.id).all()
-        cita_ids = [cita.id for cita in citas]
+        cita_info = {cita.id: cita.tipo_servicio for cita in citas}  # Obtener tipo de cita
+        cita_ids = list(cita_info.keys())
         atenciones = AtencionCita.query.filter(AtencionCita.cita_id.in_(cita_ids)).all()
-
+        
         medicamentos_recetados = []
-
+        
         for atencion in atenciones:
-            medicamento = db.session.get(Medicamento, atencion.medicamento_id)  # ✅ Corrección del warning
+            medicamento = db.session.get(Medicamento, atencion.medicamento_id)
             if not medicamento:
                 continue
-
+            
             stock = medicamento.stock if medicamento.stock is not None else 0
             disponible = stock > 0
-
+            
             medicamentos_recetados.append({
                 'medicamento_id': medicamento.id,
                 'nombre': medicamento.nombre,
                 'descripcion': medicamento.descripcion,
                 'indicacion': atencion.indicacion,
                 'recomendacion': atencion.recomendacion,
-                'fecha_receta': atencion.fecha_atencion.strftime('%Y-%m-%d'),
-                'especialidad': getattr(atencion, 'especialidad', 'No especificado'),  # ✅ Evita el error si no existe
+                'fecha_atencion': atencion.fecha_atencion.strftime('%Y-%m-%d'),
+                'tipo_cita': cita_info.get(atencion.cita_id, 'No especificado'),
+                'especialidad': getattr(atencion, 'especialidad', 'No especificado'),
                 'disponible': disponible,
                 'stock': stock
             })
-
+        
+        # Opción alternativa: agrupar medicamentos en el servidor
+        # (descomentar si prefieres hacer el agrupamiento en el backend)
+        '''
+        medicamentos_agrupados = {}
+        for med in medicamentos_recetados:
+            clave = f"{med['nombre']}-{med['indicacion']}"
+            if clave not in medicamentos_agrupados:
+                medicamentos_agrupados[clave] = {
+                    **med,
+                    'cantidad': 1
+                }
+            else:
+                medicamentos_agrupados[clave]['cantidad'] += 1
+                medicamentos_agrupados[clave]['stock'] += med['stock']
+        
+        medicamentos_recetados = list(medicamentos_agrupados.values())
+        '''
+        
         return jsonify({'success': True, 'medicamentos_recetados': medicamentos_recetados})
-
+    
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return jsonify({'success': False, 'message': 'Error interno.', 'medicamentos': []})
-
+        return jsonify({'success': False, 'message': 'Error interno.', 'medicamentos_recetados': []})
+    
 @app.route('/api/retirar_medicamento', methods=['POST'])
-
 def retirar_medicamento():
     try:
         data = request.json
         medicamento_id = data.get('medicamento_id')
         cantidad = data.get('cantidad', 1)
 
-        # Verificar que el paciente está registrado
         paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
         if not paciente:
             return jsonify({'success': False, 'message': 'Paciente no encontrado'})
 
-        # Obtener el medicamento
         medicamento = Medicamento.query.get(medicamento_id)
         if not medicamento:
             return jsonify({'success': False, 'message': 'Medicamento no encontrado'})
 
-        # Verificar si hay suficiente stock
+        atencion = AtencionCita.query.filter_by(medicamento_id=medicamento.id).join(HistorialCita).filter_by(paciente_id=paciente.id).first()
+        if not atencion:
+            return jsonify({'success': False, 'message': 'Este medicamento no ha sido recetado al paciente'})
+
         if medicamento.stock < cantidad:
             return jsonify({'success': False, 'message': 'Stock insuficiente'})
 
-        # Restar el medicamento del stock
         medicamento.stock -= cantidad
         db.session.add(medicamento)
 
-        # Registrar el retiro en la base de datos
         retiro = RegistroRetiroMedicamento(
             paciente_id=paciente.id,
             medicamento_id=medicamento.id,

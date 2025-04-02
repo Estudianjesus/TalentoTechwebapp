@@ -25,7 +25,8 @@
                         </option>
                     {% endfor %}
                 </select>
-                <input type="text" name="indicaciones[]" class="form-control" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
+                <input type="text" name="indicaciones[]" class="form-control me-2" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
+                <input type="number" name="cantidad[]" class="form-control me-2" placeholder="Cantidad" min="1" required>
                 <button type="button" class="btn btn-danger btn-sm ms-2 remove-medicamento">X</button>
             </div>
         </div>
@@ -55,7 +56,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     </option>
                 {% endfor %}
             </select>
-            <input type="text" name="indicaciones[]" class="form-control" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
+            <input type="text" name="indicaciones[]" class="form-control me-2" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
+            <input type="number" name="cantidad[]" class="form-control me-2" placeholder="Cantidad" min="1" required>
             <button type="button" class="btn btn-danger btn-sm ms-2 remove-medicamento">X</button>
         `;
 
