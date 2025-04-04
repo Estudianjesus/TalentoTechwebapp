@@ -1,382 +1,772 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Bootstrap demo</title>
-    
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
- 
-</head>
 
-<body>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
+    <style>
+        /* Estilos profesionales para el carousel */
+        .hero-carousel {
+          width: 100%;
+          height: 100vh;
+          margin-top: -40px;
+          position: relative;
+          overflow: hidden;
+        }
+      
+        /* Carousel base */
+        .carousel,
+        .carousel-inner,
+        .carousel-item {
+          height: 100%;
+        }
+      
+        /* Contenido del carousel */
+        .carousel-content {
+          height: 100vh;
+          background: linear-gradient(135deg, #002a5c 0%, #004a94 100%);
+          color: #ffffff;
+          position: relative;
+        }
+      
+        .carousel-content .row {
+          height: 100vh;
+        }
+      
+        /* Textos */
+        .content-text {
+          padding: 0 5%;
+          display: flex;
+          align-items: center;
+        }
+      
+        .content-wrapper {
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+      
+        .content-wrapper h2 {
+          font-weight: 700;
+          color: #ffffff;
+          margin-bottom: 1.5rem;
+        }
+      
+        .content-wrapper .lead {
+          font-size: 1.2rem;
+          font-weight: 400;
+          margin-bottom: 2rem;
+          line-height: 1.6;
+        }
+      
+        /* Badges */
+        .badge {
+          font-size: 0.9rem;
+          padding: 0.5rem 1rem;
+          border-radius: 30px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          background-color: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+      
+        .badge-success {
+          background-color: rgba(40, 167, 69, 0.2);
+        }
+      
+        .badge-info {
+          background-color: rgba(23, 162, 184, 0.2);
+        }
+      
+        /* Botones */
+        .btn {
+          border-radius: 50px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+      
+        .btn-primary {
+          background: linear-gradient(45deg, #1a73e8, #4285f4);
+          border: none;
+        }
+      
+        .btn-success {
+          background: linear-gradient(45deg, #28a745, #5cb85c);
+          border: none;
+        }
+      
+        .btn-info {
+          background: linear-gradient(45deg, #17a2b8, #5bc0de);
+          border: none;
+        }
+      
+        .btn-outline {
+          background: transparent;
+          border: 2px solid rgba(255, 255, 255, 0.7);
+          color: #ffffff;
+        }
+      
+        .btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+      
+        /* Imágenes */
+        .content-image {
+          height: 100vh;
+          overflow: hidden;
+        }
+      
+        .carousel-image {
+          height: 100%;
+          width: 100%;
+          object-fit: cover;
+          filter: brightness(0.9);
+          transform: scale(1.05);
+          transition: transform 0.7s ease;
+        }
+      
+        .carousel-item.active .carousel-image {
+          transform: scale(1);
+        }
+      
+        /* Onda */
+        .wave {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 180px;
+          z-index: 10;
+          pointer-events: none;
+        }
+      
+        .wave svg {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          bottom: -1px;
+          filter: drop-shadow(0 -5px 10px rgba(0, 0, 0, 0.05));
+        }
+      
+        /* Indicadores */
+        .carousel-indicators {
+          bottom: 40px;
+          z-index: 20;
+          margin-bottom: 0;
+        }
+      
+        .carousel-indicators button {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.4);
+          margin: 0 8px;
+          border: none;
+          transition: all 0.3s ease;
+          opacity: 0.5;
+        }
+      
+        .carousel-indicators button.active {
+          background-color: #ffffff;
+          width: 30px;
+          border-radius: 25px;
+          opacity: 1;
+        }
+      
+        /* Controles */
+        .carousel-control-prev,
+        .carousel-control-next {
+          width: 10%;
+          opacity: 1;
+        }
+      
+        .control-icon {
+          width: 50px;
+          height: 50px;
+          background-color: rgba(255, 255, 255, 0.15);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(5px);
+        }
+      
+        .carousel-control-prev:hover .control-icon,
+        .carousel-control-next:hover .control-icon {
+          background-color: rgba(255, 255, 255, 0.25);
+          transform: scale(1.1);
+        }
+      
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+          width: 20px;
+          height: 20px;
+        }
+      
+        /* Animaciones */
+        .carousel-item h2,
+        .carousel-item p,
+        .carousel-item .badge,
+        .carousel-item .btn {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+      
+        .carousel-item.active h2 {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.3s;
+        }
+      
+        .carousel-item.active p {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.5s;
+        }
+      
+        .carousel-item.active .badge {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.1s;
+        }
+      
+        .carousel-item.active .btn {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.7s;
+        }
+      
+        /* Transición entre slides */
+        .carousel-item {
+          transition: transform 0.8s ease-in-out;
+        }
+      
+        /* Responsive */
+        @media (max-width: 991px) {
+          .content-image {
+            display: none;
+          }
+      
+          .content-text {
+            width: 100%;
+            padding: 0;
+          }
+      
+          .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem 1.5rem;
+          }
+      
+          .wave {
+            height: 100px;
+          }
+      
+          .carousel-indicators {
+            bottom: 30px;
+          }
+      
+          .carousel-content {
+            background: linear-gradient(135deg, #002a5c 0%, #004a94 100%);
+          }
+        }
+      
+        @media (max-width: 767px) {
+          .content-wrapper h2 {
+            font-size: 2rem;
+          }
+      
+          .content-wrapper .lead {
+            font-size: 1rem;
+          }
+      
+          .btn {
+            font-size: 0.9rem;
+            padding: 0.5rem 1.2rem !important;
+          }
+      
+          .badge {
+            font-size: 0.8rem;
+          }
+      
+          .control-icon {
+            width: 40px;
+            height: 40px;
+          }
+      
+          .carousel-control-prev-icon,
+          .carousel-control-next-icon {
+            width: 16px;
+            height: 16px;
+          }
+        }
+      
+        @media (max-width: 480px) {
+          .d-flex {
+            flex-direction: column;
+            gap: 1rem !important;
+            width: 100%;
+          }
+      
+          .btn {
+            width: 100%;
+          }
+        }
+      </style>
+  </head>
+
+  <body>
     <header class="position-fixed w-100 top-0 start-0 z-index-1050 bg-white shadow-sm main-header">
-        <div class="banner-container top-banner d-block text-center">
-            <div behavior="scroll" direction="left" scrollamount="5">
-                <i class="fas fa-map-marker-alt me-2"></i>Calle 123, Barrio Centro, Corozal, Sucre, Colombia 
-                <span class="mx-4">|</span> 
-                <i class="fas fa-phone-alt me-2" > </i> <a href="tel:300304444"> 300304444 </a> 
-            </div>
+      <div class="banner-container top-banner d-block text-center">
+        <div behavior="scroll" direction="left" scrollamount="5">
+          <i class="fas fa-map-marker-alt me-2"></i>Calle 123, Barrio Centro, Corozal, Sucre, Colombia
+          <span class="mx-4">|</span>
+          <i class="fas fa-phone-alt me-2"></i> <a href="tel:300304444">300304444</a>
         </div>
-    
-        <div class="container">
-            <div class="row align-items-center py-3">
-                <div class="col-3">
-                    <h1 class="m-0 fs-6 logo-text">
-                        <i class="fas fa-hospital me-2"></i>MediFlex
-                    </h1>
-                </div>
-    
-                <div class="col-lg-6 d-none d-lg-block">
-                    <nav class="navbar navbar-expand-lg justify-content-center">
-                        <ul class="nav justify-content-center">
-                            <li class="nav-item">
-                                <a class="nav-link fw-medium text-secondary" href="/">Inicio</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-medium text-secondary" href="/nosotros">Nosotros</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle fw-medium text-secondary" role="button" data-bs-toggle="dropdown">
-                                    Servicios
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><h6 class="dropdown-header">Servicios Médicos</h6></li>
-                                    <li>
-                                        <a class="dropdown-item" href="/urgencia">
-                                            <i class="fas fa-heartbeat me-2"></i>Urgencias 24/7
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="/consulta_general">
-                                            <i class="fas fa-stethoscope me-2"></i>Consulta General
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">Servicios Adicionales</h6></li>
-                                    <li>
-                                        <a class="dropdown-item" href="/farmacia">
-                                            <i class="fas fa-pills me-2"></i>Farmacia
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-medium text-secondary" href="/contacto">Contacto</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-                
-                <div class="col-9 col-lg-3 d-flex justify-content-end align-items-center">
-                    <div class="d-none d-lg-inline-flex gap-2">
-                        <button class="btn btn-primary-p px-4 py-2 rounded-pill" onclick="window.location.href='/portal'">
-                            <i class="fas fa-user-circle me-2"></i>Portal Pacientes
-                        </button>
-                        
-                    </div>
-                    <button class="navbar-toggler d-lg-none border-0 ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuMovil">
-                        <i class="fas fa-bars fs-4 text-primary"></i>
-                    </button>
-                </div>
-                </div>
-                </div>
-                <div class="header-border"></div>
-                </header>
-                
-                <!-- Menú lateral en móvil -->
-                <div class="offcanvas offcanvas-end" tabindex="-1" id="menuMovil">
-                    <div class="offcanvas-header">
-                        <h5 class="offcanvas-title text-primary">MediFlex</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-                    </div>
-                    <div class="offcanvas-body">
-                        <ul class="nav flex-column">
-                            <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/nosotros">Nosotros</a></li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Servicios</a>
-                                <ul class="dropdown-menu">
-                                    <li><h6 class="dropdown-header">Servicios Médicos</h6></li>
-                                    <li><a class="dropdown-item" href="/urgencia"><i class="fas fa-heartbeat me-2"></i>Urgencias 24/7</a></li>
-                                    <li><a class="dropdown-item" href="/consulta_general"><i class="fas fa-stethoscope me-2"></i>Consulta General</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">Servicios Adicionales</h6></li>
-                                    <li><a class="dropdown-item" href="/farmacia"><i class="fas fa-pills me-2"></i>Farmacia</a></li>
-                                </ul>
-                            </li>
-                            <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
-                        </ul>
-                        <hr>
-                        <a class="btn btn-primary w-100" href="/portal">Portal Pacientes</a>
+      </div>
 
-                    </div>
-                </div>
-                
+      <div class="container">
+        <div class="row align-items-center py-3">
+          <div class="col-3">
+            <h1 class="m-0 fs-6 logo-text"><i class="fas fa-hospital me-2"></i>MediFlex</h1>
+          </div>
 
+          <div class="col-lg-6 d-none d-lg-block">
+            <nav class="navbar navbar-expand-lg justify-content-center">
+              <ul class="nav justify-content-center">
+                <li class="nav-item">
+                  <a class="nav-link fw-medium text-secondary" href="/">Inicio</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link fw-medium text-secondary" href="/nosotros">Nosotros</a>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle fw-medium text-secondary" role="button" data-bs-toggle="dropdown">Servicios</a>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <h6 class="dropdown-header">Servicios Médicos</h6>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/urgencia"><i class="fas fa-heartbeat me-2"></i>Urgencias 24/7</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/consulta_general"><i class="fas fa-stethoscope me-2"></i>Consulta General</a>
+                    </li>
+                    <li>
+                      <hr class="dropdown-divider" />
+                    </li>
+                    <li>
+                      <h6 class="dropdown-header">Servicios Adicionales</h6>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/farmacia"><i class="fas fa-pills me-2"></i>Farmacia</a>
+                    </li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link fw-medium text-secondary" href="/contacto">Contacto</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          <div class="col-9 col-lg-3 d-flex justify-content-end align-items-center">
+            <div class="d-none d-lg-inline-flex gap-2">
+              <button class="btn btn-primary-p px-4 py-2 rounded-pill" onclick="window.location.href='/portal'"><i class="fas fa-user-circle me-2"></i>Portal Pacientes</button>
+            </div>
+            <button class="navbar-toggler d-lg-none border-0 ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuMovil"><i class="fas fa-bars fs-4 text-primary"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="header-border"></div>
+    </header>
+
+    <!-- Menú lateral en móvil -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="menuMovil">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title text-primary">MediFlex</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Inicio</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/nosotros">Nosotros</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Servicios</a>
+            <ul class="dropdown-menu">
+              <li>
+                <h6 class="dropdown-header">Servicios Médicos</h6>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/urgencia"><i class="fas fa-heartbeat me-2"></i>Urgencias 24/7</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/consulta_general"><i class="fas fa-stethoscope me-2"></i>Consulta General</a>
+              </li>
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
+              <li>
+                <h6 class="dropdown-header">Servicios Adicionales</h6>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/farmacia"><i class="fas fa-pills me-2"></i>Farmacia</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contacto">Contacto</a>
+          </li>
+        </ul>
+        <hr />
+        <a class="btn btn-primary w-100" href="/portal">Portal Pacientes</a>
+      </div>
+    </div>
 
     <main>
-        <section class="hero-section">
-            <div class="container">
-                <div class="hero-content">
-                    <div class="row align-items-center fade-right" data-aos-duration="1500">
-                        <div class="col-lg-6" data-aos="fade-right" data-aos-duration="1500">
-                            <h1 class="hero-title">Cuidamos tu salud y la de tu familia</h1>
-                            <p class="hero-description">
-                                Brindamos servicios de salud integrales con tecnología de punta y profesionales altamente calificados para el bienestar de todos nuestros afiliados.
-                            </p>
-                            <div class="hero-buttons d-flex gap-3">
-                                <!-- Botón para abrir el modal -->
-                                <a href="{{ url_for('portal_usuarios') }}" class="btn btn-afiliate">
-                                    <i class="fas fa-user-plus me-2"></i>Afíliate Ahora
-                                </a>
-                                <button class="btn btn-red">
-                                    <i class="fas fa-hospital me-2"></i>Red de Atención
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-lg-6" data-aos="fade-left" data-aos-duration="1500">
-                            <img src="../static/img/paciente y medico.avif" alt="Servicios médicos" class="img-fluid"/>
-                        </div>
-                    </div>
+        <section class="hero-carousel">
+            <div class="container-fluid p-0">
+              <div id="epsCarousel" class="carousel slide" data-bs-ride="carousel">
+                <!-- Indicadores -->
+                <div class="carousel-indicators">
+                  <button type="button" data-bs-target="#epsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                  <button type="button" data-bs-target="#epsCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                  <button type="button" data-bs-target="#epsCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
                 </div>
-            </div>
-        </section>
-    
-
-        <section class="services-section">
-            <div class="container">
-                <div class="row g-4">
-                    <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2500" data-aos-delay="200">
-                        <div class="service-card">
-                            <div class="service-header card-ser ">
-                                <div class="service-icon">
-                                    <i class="fas fa-heartbeat"></i>
-                                </div>
+          
+                <!-- Contenido del Carousel -->
+                <div class="carousel-inner">
+                  <!-- Slide 1 -->
+                  <div class="carousel-item active">
+                    <div class="carousel-content">
+                      <div class="row g-0 align-items-center">
+                        <div class="col-lg-6 content-text">
+                          <div class="content-wrapper">
+                            <span class="badge mb-2">Servicio Destacado</span>
+                            <h2 class="display-5 mb-3">Salud para toda tu familia</h2>
+                            <p class="lead mb-4">Ofrecemos atención médica integral con los mejores especialistas y tecnología de vanguardia para cuidar de ti y los tuyos.</p>
+                            <div class="d-flex gap-3">
+                              <a href="#" class="btn btn-primary px-4 py-2">Afíliate ahora</a>
+                              <a href="#" class="btn btn-outline px-4 py-2">Más información</a>
                             </div>
-                            <div class="service-content">
-                                <h3 class="service-title">Atención Prioritaria</h3>
-                                <p class="service-description">Servicio de urgencias 24/7 en nuestra red hospitalaria.</p>
-                            </div>
+                          </div>
                         </div>
-                    </div>
-
-                    <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2500" data-aos-delay="400">
-                        <div class="service-card">
-                            <div class="service-header card-ser2">
-                                <div class="service-icon">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                            </div>
-                            <div class="service-content">
-                                <h3 class="service-title">Citas Médicas</h3>
-                                <p class="service-description">Agenda tus citas de manera fácil y rápida.</p>
-                            </div>
+                        <div class="col-lg-6 content-image">
+                          <img src="{{ url_for('static', filename='img/perosna3.avif') }}" class="d-block w-100 carousel-image" alt="Familia saludable" />
                         </div>
+                      </div>
                     </div>
-
-                    <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2500" data-aos-delay="600">
-                        <div class="service-card">
-                            <div class="service-header card-ser3">
-                                <div class="service-icon">
-                                    <i class="fas fa-pills"></i>
-                                </div>
+                  </div>
+          
+                  <!-- Slide 2 -->
+                  <div class="carousel-item">
+                    <div class="carousel-content">
+                      <div class="row g-0 align-items-center">
+                        <div class="col-lg-6 content-text">
+                          <div class="content-wrapper">
+                            <span class="badge badge-success mb-2">Nuevo Servicio</span>
+                            <h2 class="display-5 mb-3">Telemedicina a tu alcance</h2>
+                            <p class="lead mb-4">Consultas médicas desde la comodidad de tu hogar, con diagnósticos precisos y seguimiento personalizado.</p>
+                            <div class="d-flex gap-3">
+                              <a href="#" class="btn btn-success px-4 py-2">Agendar consulta</a>
+                              <a href="#" class="btn btn-outline px-4 py-2">Ver especialistas</a>
                             </div>
-                            <div class="service-content" >
-                                <h3 class="service-title">Medicamentos</h3>
-                                <p class="service-description">Amplia red de farmacias para tu comodidad.</p>
-                            </div>
+                          </div>
                         </div>
-                    </div>
-
-                    <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2500" data-aos-delay="800">
-                        <div class="service-card">
-                            <div class="service-header card-ser4">
-                                <div class="service-icon">
-                                    <i class="fas fa-user-md"></i>
-                                </div>
-                            </div>
-                            <div class="service-content">
-                                <h3 class="service-title">Especialistas</h3>
-                                <p class="service-description">Accede a más de 20 especialidades médicas.</p>
-                            </div>
+                        <div class="col-lg-6 content-image">
+                          <img src="{{ url_for('static', filename='img/perosna3.avif') }}" class="d-block w-100 carousel-image" alt="Telemedicina" />
                         </div>
+                      </div>
                     </div>
+                  </div>
+          
+                  <!-- Slide 3 -->
+                  <div class="carousel-item">
+                    <div class="carousel-content">
+                      <div class="row g-0 align-items-center">
+                        <div class="col-lg-6 content-text">
+                          <div class="content-wrapper">
+                            <span class="badge badge-info mb-2">Prevención</span>
+                            <h2 class="display-5 mb-3">Programas de promoción y prevención</h2>
+                            <p class="lead mb-4">Contamos con programas especializados para el cuidado preventivo, vacunación y detección temprana de enfermedades.</p>
+                            <div class="d-flex gap-3">
+                              <a href="#" class="btn btn-info px-4 py-2">Conoce más</a>
+                              <a href="#" class="btn btn-outline px-4 py-2">Ubicaciones</a>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-6 content-image">
+                          <img src="{{ url_for('static', filename='img/perosna3.avif') }}" class="d-block w-100 carousel-image" alt="Prevención" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-            </div>
-        </section>
-
-        <section class="section-estadis">
-            <div class="container">
-                <div class="row text-center">
-                    <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up">
-                        <h2 class="text-eps text-white"><i class="fas fa-users mb-3"></i><br>+500k</h2>
-                        <p class="text-white">Afiliados Satisfechos</p>
-                    </div>
-                    <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up" data-aos-delay="100">
-                        <h2 class="text-eps text-white"><i class="fas fa-hospital mb-3"></i><br>300+</h2>
-                        <p class="text-white">Centros Médicos</p>
-                    </div>
-                    <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up" data-aos-delay="200">
-                        <h2 class="text-eps text-white"><i class="fas fa-user-md mb-3"></i><br>1000+</h2>
-                        <p class="text-white">Profesionales de la Salud</p>
-                    </div>
-                    <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
-                        <h2 class="text-eps text-white"><i class="fas fa-clock mb-3"></i><br>24/7</h2>
-                        <p class="text-white">Atención de Urgencias</p>
-                    </div>
+          
+                <!-- Onda optimizada -->
+                <div class="wave">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                    <path fill="#ffffff" fill-opacity="1" d="M0,160Q360,320,720,240T1440,160V320H0Z"></path>
+                  </svg>
                 </div>
+          
+                <!-- Controles -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#epsCarousel" data-bs-slide="prev">
+                  <div class="control-icon">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  </div>
+                  <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#epsCarousel" data-bs-slide="next">
+                  <div class="control-icon">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  </div>
+                  <span class="visually-hidden">Siguiente</span>
+                </button>
+              </div>
             </div>
-        </section>
+          </section>
+          
+         
 
-        <section class="contact-section mt-5">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6" data-aos="fade-right">
-                        <img src="../static/img/mapa4.webp" alt="Mapa de ubicación" class=" mb-2 mb-lg-0" style="width: 400px;"/>
-                    </div>
-                    <div class="col-lg-6" data-aos="fade-left">
-                        <div class="contact-card">
-                            <h5 class="fw-bold text-primary mb-4">Información de Contacto</h5>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-map-marker-alt text-danger me-3 fs-4"></i>
-                                <p class="mb-0">Calle 123 #45-67, Corozal, Sucre</p>
-                            </div>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-phone-alt text-success me-3 fs-4"></i>
-                                <p class="mb-0">304 542 0537</p>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-envelope text-primary me-3 fs-4"></i>
-                                <p class="mb-0">contacto@mediflex.com</p>
-                            </div>
-                        </div>
-                    </div>
+
+      <section class="services-section">
+        <div class="container">
+          <div class="row g-4">
+            <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2000" data-aos-delay="200">
+              <div class="service-card">
+                <div class="service-header card-ser">
+                  <div class="service-icon">
+                    <i class="fas fa-heartbeat"></i>
+                  </div>
                 </div>
+                <div class="service-content">
+                  <h3 class="service-title">Atención Prioritaria</h3>
+                  <p class="service-description">Servicio de urgencias 24/7 en nuestra red hospitalaria.</p>
+                </div>
+              </div>
             </div>
-        </section>
-           
 
+            <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2000" data-aos-delay="400">
+              <div class="service-card">
+                <div class="service-header card-ser2">
+                  <div class="service-icon">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                </div>
+                <div class="service-content">
+                  <h3 class="service-title">Citas Médicas</h3>
+                  <p class="service-description">Agenda tus citas de manera fácil y rápida.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2000" data-aos-delay="600">
+              <div class="service-card">
+                <div class="service-header card-ser3">
+                  <div class="service-icon">
+                    <i class="fas fa-pills"></i>
+                  </div>
+                </div>
+                <div class="service-content">
+                  <h3 class="service-title">Medicamentos</h3>
+                  <p class="service-description">Amplia red de farmacias para tu comodidad.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="2000" data-aos-delay="800">
+              <div class="service-card">
+                <div class="service-header card-ser4">
+                  <div class="service-icon">
+                    <i class="fas fa-user-md"></i>
+                  </div>
+                </div>
+                <div class="service-content">
+                  <h3 class="service-title">Especialistas</h3>
+                  <p class="service-description">Accede a más de 20 especialidades médicas.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-estadis">
+        <div class="container">
+          <div class="row text-center">
+            <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up">
+              <h2 class="text-eps text-white"><i class="fas fa-users mb-3"></i><br />+500k</h2>
+              <p class="text-white">Afiliados Satisfechos</p>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up" data-aos-delay="100">
+              <h2 class="text-eps text-white"><i class="fas fa-hospital mb-3"></i><br />300+</h2>
+              <p class="text-white">Centros Médicos</p>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0" data-aos="fade-up" data-aos-delay="200">
+              <h2 class="text-eps text-white"><i class="fas fa-user-md mb-3"></i><br />1000+</h2>
+              <p class="text-white">Profesionales de la Salud</p>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+              <h2 class="text-eps text-white"><i class="fas fa-clock mb-3"></i><br />24/7</h2>
+              <p class="text-white">Atención de Urgencias</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="contact-section mt-5">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-6" data-aos="fade-right">
+              <img src="../static/img/mapa4.webp" alt="Mapa de ubicación" class="mb-2 mb-lg-0" style="width: 400px;" />
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+              <div class="contact-card">
+                <h5 class="fw-bold text-primary mb-4">Información de Contacto</h5>
+                <div class="d-flex align-items-center mb-3">
+                  <i class="fas fa-map-marker-alt text-danger me-3 fs-4"></i>
+                  <p class="mb-0">Calle 123 #45-67, Corozal, Sucre</p>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                  <i class="fas fa-phone-alt text-success me-3 fs-4"></i>
+                  <p class="mb-0">304 542 0537</p>
+                </div>
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-envelope text-primary me-3 fs-4"></i>
+                  <p class="mb-0">contacto@mediflex.com</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
     <footer class="footer-gradient text-white py-5 mt-5">
-        <div class="container">
-            <div class="row g-4">
-                <!-- Servicios -->
-                <section class="col-md-3">
-                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Servicios</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <a href="#" class="footer-link text-white">Citas Médicas</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="footer-link text-white">Urgencias</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="footer-link text-white">Laboratorio Clínico</a>
-                        </li>
-                    </ul>
-                </section>
+      <div class="container">
+        <div class="row g-4">
+          <!-- Servicios -->
+          <section class="col-md-3">
+            <h5 class="border-bottom border-white-50 pb-2 mb-3">Servicios</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a href="#" class="footer-link text-white">Citas Médicas</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="footer-link text-white">Urgencias</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="footer-link text-white">Laboratorio Clínico</a>
+              </li>
+            </ul>
+          </section>
 
-                <section class="col-md-3">
-                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Enlaces Rápidos</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <a href="#" class="footer-link text-white">Portal del Paciente</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="footer-link text-white">PQR</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="footer-link text-white">Trabaja con Nosotros</a>
-                        </li>
-                    </ul>
-                </section>
+          <section class="col-md-3">
+            <h5 class="border-bottom border-white-50 pb-2 mb-3">Enlaces Rápidos</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a href="#" class="footer-link text-white">Portal del Paciente</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="footer-link text-white">PQR</a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="footer-link text-white">Trabaja con Nosotros</a>
+              </li>
+            </ul>
+          </section>
 
-                <section class="col-md-3">
-                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Contacto</h5>
-                    <ul class="list-unstyled mb-3">
-                        <li class="mb-2">
-                            <i class="fas fa-phone me-2 text-warning"></i>
-                            (123) 456-7890
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-envelope me-2 text-warning"></i>
-                            contacto@eps.com
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-map-marker-alt me-2 text-warning"></i>
-                            Calle Principal #123
-                        </li>
-                    </ul>
-                    <div class="emergency-section bg-white bg-opacity-10 p-3 rounded">
-                        <h6 class="text-warning">
-                            <i class="fas fa-ambulance me-2"></i>
-                            Línea de Emergencias 24/7
-                        </h6>
-                        <p class="mb-0 fs-5">018000 123 456</p>
-                    </div>
-                </section>
-
-                <section class="col-md-3">
-                    <h5 class="border-bottom border-white-50 pb-2 mb-3">Síguenos</h5>
-                    <div class="mb-4">
-                        <a href="#" class="social-icon text-white me-3 fs-4">
-                            <i class="fab fa-facebook"></i>
-                        </a>
-                        <a href="#" class="social-icon text-white me-3 fs-4">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-icon text-white me-3 fs-4">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="social-icon text-white fs-4">
-                            <i class="fab fa-linkedin"></i>
-                        </a>
-                    </div>
-                </section>
+          <section class="col-md-3">
+            <h5 class="border-bottom border-white-50 pb-2 mb-3">Contacto</h5>
+            <ul class="list-unstyled mb-3">
+              <li class="mb-2">
+                <i class="fas fa-phone me-2 text-warning"></i>
+                (123) 456-7890
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-envelope me-2 text-warning"></i>
+                contacto@eps.com
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-map-marker-alt me-2 text-warning"></i>
+                Calle Principal #123
+              </li>
+            </ul>
+            <div class="emergency-section bg-white bg-opacity-10 p-3 rounded">
+              <h6 class="text-warning">
+                <i class="fas fa-ambulance me-2"></i>
+                Línea de Emergencias 24/7
+              </h6>
+              <p class="mb-0 fs-5">018000 123 456</p>
             </div>
-        </div>
+          </section>
 
-        <div class="bg-black bg-opacity-10 mt-4">
-            <div class="container py-3">
-                <div class="row align-items-center">
-                    <div class="col-md-6 text-center text-md-start">
-                        <small>© 2025 EPS. Todos los derechos reservados.</small>
-                    </div>
-                    <div class="col-md-6 text-center text-md-end">
-                        <a href="#" class="footer-link text-white me-3">Términos y Condiciones</a>
-                        <a href="#" class="footer-link text-white">Política de Privacidad</a>
-                    </div>
-                </div>
+          <section class="col-md-3">
+            <h5 class="border-bottom border-white-50 pb-2 mb-3">Síguenos</h5>
+            <div class="mb-4">
+              <a href="#" class="social-icon text-white me-3 fs-4"><i class="fab fa-facebook"></i></a>
+              <a href="#" class="social-icon text-white me-3 fs-4"><i class="fab fa-twitter"></i></a>
+              <a href="#" class="social-icon text-white me-3 fs-4"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="social-icon text-white fs-4"><i class="fab fa-linkedin"></i></a>
             </div>
+          </section>
         </div>
+      </div>
+
+      <div class="bg-black bg-opacity-10 mt-4">
+        <div class="container py-3">
+          <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start">
+              <small>© 2025 EPS. Todos los derechos reservados.</small>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+              <a href="#" class="footer-link text-white me-3">Términos y Condiciones</a>
+              <a href="#" class="footer-link text-white">Política de Privacidad</a>
+            </div>
+          </div>
+        </div>
+      </div>
     </footer>
-  
 
     <script src="../static/js/banner.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
-        AOS.init({
-            once: true,
-            startEvent: 'DOMContentLoaded'
-        });
-
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelector(".fade-right").classList.add("show");
-            document.querySelector(".fade-left").classList.add("show");
-        });
-
-
+      AOS.init({
+        once: true,
+        startEvent: 'DOMContentLoaded'
+      })
+      
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelector('.fade-right').classList.add('show')
+        document.querySelector('.fade-left').classList.add('show')
+      })
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        AOS.init();
+      AOS.init()
     </script>
-</body>
+  </body>
 </html>

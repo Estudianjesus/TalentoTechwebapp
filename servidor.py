@@ -13,7 +13,6 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask_migrate import Migrate
 from database import db
 from models import AtencionCita, Cita, HistorialCita, Medicamento, RegistroRetiroMedicamento, solicitudes_afiliacion, Usuario, Paciente
-from flask_wtf import FlaskForm
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -21,26 +20,20 @@ from sqlalchemy.orm import joinedload
 from datetime import datetime
 import datetime 
 
-
-
-
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = 'tu_clave_secreta_segura'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@127.0.0.1:3307/eps_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['SESSION_PERMANENT'] = True
 
-
-# 🔹 Inicializar la base de datos con la aplicación
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# 🔹 Configurar Flask-Login
 login_manager = LoginManager()
+login_manager.login_view = "login_admin"
 login_manager.init_app(app)
-login_manager.login_view = "login_admin"  # Redirección si el usuario no está autenticado
-login_manager.session_protection = "strong" 
 
 
 # 🔹 Verificar conexión a la base de datos
@@ -50,10 +43,8 @@ with app.app_context():
         print("✅ Conexión exitosa a la base de datos")
     except Exception as e:
         print(f"❌ Error al conectar con la base de datos: {e}")
-@app.route('/')
-def home():
-    return render_template('index.html')
-
+        
+    
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
@@ -64,22 +55,26 @@ def is_safe_url(target):
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 # Modulo admistracion
-
 @app.route('/login_admin', methods=['GET', 'POST'])
 def login_admin():
     if current_user.is_authenticated:
-        # Redirigir si ya está autenticado
         rutas = {
             "Administrador": url_for('admin'),
-            "Subadministrador": url_for('sudadmin'),
+            "Subadministrador": url_for('admin'),
             "Farmacia": url_for('dashboard_farmacia')
         }
-        return redirect(rutas.get(current_user.rol, url_for('login_admin')))
+
+        destino = rutas.get(current_user.rol)
+        if destino:
+            return redirect(destino)
+        else:
+            logout_user()  # Cerrar sesión si el rol es inválido
+            flash("⚠️ Error: Rol no válido, contacte al administrador.", "error")
+            return redirect(url_for('login_admin'))  # Evitar bucle
 
     if request.method == 'GET':
         return render_template('login_admin.html')
 
-    # Asegurar que la solicitud tiene JSON válido
     data = request.get_json()
     if not data:
         return jsonify({"status": "error", "message": "Se esperaba JSON"}), 400
@@ -102,30 +97,50 @@ def login_admin():
 
     rutas = {
         "Administrador": url_for('admin'),
-        "Subadministrador": url_for('sudadmin'),
+        "Subadministrador": url_for('admin'),
         "Farmacia": url_for('dashboard_farmacia')
     }
 
-    return jsonify({"status": "success", "redirect_url": rutas.get(user.rol, url_for('login_admin')), "clear_fields": False})
+    destino = rutas.get(user.rol)
 
+    if destino:
+        return jsonify({"status": "success", "redirect_url": destino, "clear_fields": False})
+    else:
+        logout_user() 
+        return jsonify({"status": "error", "message": "Rol no válido, contacte al administrador", "clear_fields": True}), 403
 
+# Ruta principal
+@app.route('/')
+def home():
+    return render_template('index.html')
 
+# Ruta Administradores
 @app.route('/admin')
-@login_required
+@login_required 
 def admin():
+    if current_user.rol not in ['Administrador', 'Subadministrador', 'Farmacia']:
+        return redirect(url_for('home'))
     
-    return render_template('admin/admin_dashboard.html', usuario=current_user)
+    total_afiliado = Paciente.query.count()
+    total_cita = Cita.query.count()
+    total_solicitude = solicitudes_afiliacion.query.count()
+    total_medicamento = Medicamento.query.count()
+    return render_template('admin/admin_dashboard.html', usuario=current_user,total_afiliado=total_afiliado,total_cita=total_cita,total_solicitude=total_solicitude,total_medicamento=total_medicamento)
+
+
+
 
 @app.route('/admin/perfil', methods=['GET'])
 @login_required
 def perfil():
     # Si el usuario NO tiene rol permitido, lo rediriges a home
-    if current_user.rol not in ['Administrador', 'Subadministrador', 'Farmacia']:
+    if current_user.rol not in ['Administrador', 'Subadministrador']:
         return redirect(url_for('home'))
     
     # 🔹 Si el usuario es de Farmacia, lo mandamos a su perfil específico
     if current_user.rol == 'Farmacia':
-        return redirect(url_for('perfil_far'))  # Asegúrate de tener esta ruta
+        return redirect(url_for('perfil_far'))
+    # Asegúrate de tener esta ruta
 
     # Obtener todas las solicitudes si es admin o subadmin
     solicitudes = solicitudes_afiliacion.query.order_by(
@@ -135,13 +150,13 @@ def perfil():
 
     return render_template('admin/perfil_dashboard.html', solicitudes=solicitudes, usuario=current_user)
 
-
-
 @app.route('/admin/solicitudes', methods=['GET'])
 @login_required
 def ver_solicitudes():
-    if current_user.rol != 'Administrador':
+    if current_user.rol not in ['Administrador', 'Subadministrador']:
         return redirect(url_for('home'))
+    
+    print(f"Rol del usuario: {current_user.rol}")
     
     # Obtener todas las solicitudes desde la base de datos
     solicitudes = solicitudes_afiliacion.query.all()
@@ -172,6 +187,10 @@ def ver_solicitudes():
 @app.route('/admin/solicitudes/aceptar/<int:solicitud_id>', methods=['POST'])
 @login_required
 def aceptar_solicitud(solicitud_id):
+    
+    if current_user.rol not in ['administrador', 'subadministrador']:
+            return redirect(url_for('no_autorizado'))
+        
     print(f"🔍 Inicio de la función aceptar_solicitud con solicitud_id: {solicitud_id}")
     
     try:
@@ -271,6 +290,8 @@ def aceptar_solicitud(solicitud_id):
 @app.route('/admin/solicitudes/rechazar/<int:solicitud_id>', methods=['POST'])
 @login_required
 def rechazar_solicitud(solicitud_id):
+    if current_user.rol not in ['Administrador', 'Subadministrador']:
+            return redirect(url_for('home'))
     solicitud = 	solicitudes_afiliacion.query.get_or_404(solicitud_id)
 
     try:
@@ -304,7 +325,7 @@ def restaurar_solicitud(solicitud_id):
 @app.route('/admin/pacientes', methods=['GET'])
 @login_required
 def ver_pacientes():
-    if current_user.rol != 'Administrador':
+    if current_user.rol not in ['Administrador', 'Subadministrador', 'Farmacia']:
         return redirect(url_for('home'))
 
     # Obtener todos los pacientes con su estado de usuario
@@ -340,6 +361,8 @@ def ver_pacientes():
 @app.route('/admin/paciente/ver/<int:id>')
 @login_required
 def ver_paciente(id):
+    if current_user.rol not in ['Administrador', 'Subadministrador']:
+            return redirect(url_for('home'))
     paciente = Paciente.query.get(id)  # Obtener paciente por ID
 
     if not paciente:
@@ -350,8 +373,9 @@ def ver_paciente(id):
 @app.route('/admin/paciente/editar/<int:id>', methods=['GET'])
 @login_required
 def editar_paciente(id):
-    if current_user.rol != 'Administrador':
-        return redirect(url_for('home'))
+    if current_user.rol not in ['Administrador', 'Subadministrador']:
+            return redirect(url_for('home'))
+
 
     paciente = Paciente.query.get_or_404(id)
     usuario = Usuario.query.filter_by(numero_documento=paciente.numero_documento).first()
@@ -361,8 +385,8 @@ def editar_paciente(id):
 @app.route('/admin/paciente/actualizar/<int:id>', methods=['POST'])
 @login_required
 def actualizar_paciente(id):
-    if current_user.rol != 'Administrador':
-        return redirect(url_for('home'))
+    if current_user.rol not in ['Administrador', 'Subadministrador']:
+            return redirect(url_for('home'))
 
     # Busca al paciente por id
     paciente = Paciente.query.get_or_404(id)
@@ -723,26 +747,6 @@ def eliminar_medicamento(id):
     db.session.commit()
 
     return redirect(url_for('ver_medicamentos'))
-
-@app.route('/sudadmin')
-@login_required
-def sudadmin():
-    return render_template('sudabmin_dashboard.html', usuario=current_user)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
