@@ -52,23 +52,30 @@ function filtrarPacientes() {
 // Ejecutar el filtro cada vez que se presiona una tecla en el input de búsqueda
 document.getElementById("busqueda").addEventListener("keyup", filtrarPacientes);
     
-function eliminarPaciente(id) {
-if (!confirm("¿Estás seguro de que deseas eliminar este paciente?")) return;
 
-fetch(`/admin/paciente/eliminar/${id}`, {
-    method: "DELETE",
-    headers: { "X-Requested-With": "XMLHttpRequest" }
-})
-.then(response => response.json())
-.then(data => {
-    if (data.status === "success") {
-        // Si se eliminó correctamente, eliminar la fila de la tabla
-        document.getElementById(`paciente-${id}`).remove();
-    } else {
-        alert("Error: " + data.message);
-    }
-})
-.catch(error => console.error("Error al eliminar paciente:", error));
+function eliminarPaciente(id) {
+    if (!confirm("¿Estás seguro de que deseas eliminar este paciente?")) return;
+
+    fetch(`/admin/paciente/eliminar/${id}`, {
+        method: "DELETE",
+        headers: { 
+            "X-Requested-With": "XMLHttpRequest" 
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Respuesta del servidor:', data); // Log para depuración
+        if (data.status === "success") {
+            document.getElementById(`paciente-${id}`).remove();  // Eliminar la fila en la tabla
+            mostrarMensaje("Paciente eliminado correctamente.", "success"); // Mostrar mensaje de éxito
+        } else {
+            mostrarMensaje("Error: " + data.message, "danger"); // Mostrar mensaje de error
+        }
+    })
+    .catch(error => {
+        console.error("Error al eliminar paciente:", error);
+        mostrarMensaje("Se produjo un error inesperado.", "danger"); // Mostrar mensaje de error inesperado
+    });
 }
 
 function mostrarMensaje(mensaje, tipo) {

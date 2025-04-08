@@ -185,25 +185,25 @@
           <div class="sidebar-header">Menú Principal</div>
           <ul class="sidebar-menu nav flex-column">
             <li class="nav-item">
-              <a href="#" id="home-link" class="nav-link active">
+              <a href="#" id="home-link" class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Sistema MEDIFLEX</span>
               </a>
             </li>
             <li class="nav-item">
-              <a href="{{ url_for('ver_solicitudes') }}" class="nav-link">
+              <a href="{{ url_for('ver_solicitudes') }}" class="nav-link {% if request.endpoint == 'ver_solicitudes' %}active{% endif %}">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Sistema Solicitudes</span>
               </a>
             </li>
             <li class="nav-item">
-              <a href="{{ url_for('ver_pacientes') }}" class="nav-link">
+              <a href="{{ url_for('ver_pacientes') }}" class="nav-link {% if request.endpoint == 'ver_pacientes' %}active{% endif %}">
                 <i class="fas fa-user-md"></i>
                 <span>Gestión de afiliados</span>
               </a>
             </li>
             <li class="nav-item">
-              <a href="{{ url_for('citas_admi') }}" class="nav-link">
+              <a href="{{ url_for('citas_admi') }}" class="nav-link {% if request.endpoint == 'citas_admi' %}active{% endif %}">
                 <i class="fas fa-calendar-alt"></i>
                 <span>Gestión de Citas Médicas</span>
               </a>
@@ -277,40 +277,40 @@
           <main class="px-3 py-4" id="main">
             <div id="content">
               {% block content %}
-                <!-- Stats Summary Cards -->
+                <!-- Dashboard Overview Section -->
                 <div class="row mb-4">
-                  <!-- Total Pacientes Card -->
+                  <!-- Total Afiliados Card -->
                   <div class="col-md-6 col-xl-3 mb-3">
-                    <div class="card shadow-sm border-start border-primary border-4">
+                    <div class="card shadow-sm border-start border-primary border-4" style="cursor: pointer;">
                       <div class="card-body d-flex align-items-center">
                         <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                            <i class="fa fa-users fa-2x text-white" aria-hidden="true"></i>
+                          <i class="fa fa-users fa-2x text-white" aria-hidden="true"></i>
                         </div>
                         <div>
                           <h6 class="text-muted mb-1">Total Afiliados</h6>
-                          <h3 class="mb-0">{{total_afiliado}}</h3>
+                          <h3 class="mb-0">{{ total_afiliado }}</h3>
                         </div>
                       </div>
                     </div>
                   </div>
-            
+
                   <!-- Citas Programadas Card -->
-                  <div class="col-md-6 col-xl-3 mb-3">
-                    <div class="card shadow-sm border-start border-success border-4">
+                  <div class="col-md-6 col-xl-3 mb-3" onclick="location.href='{{ url_for('historial_citas') }}'">
+                    <div class="card shadow-sm border-start border-success border-4" style="cursor: pointer;">
                       <div class="card-body d-flex align-items-center">
                         <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
                           <i class="fas fa-calendar-check fa-2x text-success"></i>
                         </div>
                         <div>
                           <h6 class="text-muted mb-1">Citas Programadas</h6>
-                          <h3 class="mb-0">{{total_cita}}</h3>
+                          <h3 class="mb-0">{{ total_cita }}</h3>
                         </div>
                       </div>
                     </div>
                   </div>
-            
+
                   <!-- Solicitudes Pendientes Card -->
-                  <div class="col-md-6 col-xl-3 mb-3">
+                  <div class="col-md-6 col-xl-3 mb-3" onclick="location.href='{{ url_for('ver_solicitudes') }}'" style="cursor: pointer;">
                     <div class="card shadow-sm border-start border-warning border-4">
                       <div class="card-body d-flex align-items-center">
                         <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
@@ -318,177 +318,48 @@
                         </div>
                         <div>
                           <h6 class="text-muted mb-1">Solicitudes Pendientes</h6>
-                          <h3 class="mb-0">{{total_solicitude}}</h3>
+                          <h3 class="mb-0">{{ total_solicitude }}</h3>
                         </div>
                       </div>
                     </div>
                   </div>
-            
+
                   <!-- Medicamentos Disponibles Card -->
                   <div class="col-md-6 col-xl-3 mb-3">
-                    <div class="card shadow-sm border-start border-info border-4">
+                    <div class="card shadow-sm border-start border-info border-4" style="cursor: pointer;">
                       <div class="card-body d-flex align-items-center">
                         <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
                           <i class="fas fa-pills fa-2x text-info"></i>
                         </div>
                         <div>
                           <h6 class="text-muted mb-1">Medicamentos</h6>
-                          <h3 class="mb-0">{{total_medicamento}}</h3>
-                        
+                          <h3 class="mb-0">{{ total_medicamento }}</h3>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-            
-                <!-- Charts Row -->
+
+                <!-- Charts Section -->
+
+                <!-- Recent Activity Section -->
                 <div class="row mb-4">
-                  <!-- Afiliados por Categoría -->
-                  <div class="col-lg-6 mb-4">
-                    <div class="card shadow-sm h-100">
+                  <div class="col-lg-12">
+                    <div class="card shadow-sm">
                       <div class="card-header bg-white">
-                        <h5 class="card-title mb-0">Afiliados por Categoría</h5>
-                      </div>
-                      <div class="card-body">
-                        <canvas id="afiliadosChart" height="250"></canvas>
-                      </div>
-                    </div>
-                  </div>
-            
-                  <!-- Citas por Especialidad -->
-                  <div class="col-lg-6 mb-4">
-                    <div class="card shadow-sm h-100">
-                      <div class="card-header bg-white">
-                        <h5 class="card-title mb-0">Citas por Especialidad</h5>
-                      </div>
-                      <div class="card-body">
-                        <canvas id="citasChart" height="250"></canvas>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-            
-                <!-- Activity and Performance Section -->
-                <div class="row">
-                  <!-- Actividad Reciente -->
-                  <div class="col-lg-8 mb-4">
-                    <div class="card shadow-sm h-100">
-                      <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Actividad Reciente</h5>
-                        <div class="dropdown">
-                          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="activityDropdown" data-bs-toggle="dropdown">Hoy</button>
-                          <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                              <a class="dropdown-item" href="#">Hoy</a>
-                            </li>
-                            <li>
-                              <a class="dropdown-item" href="#">Esta Semana</a>
-                            </li>
-                            <li>
-                              <a class="dropdown-item" href="#">Este Mes</a>
-                            </li>
-                          </ul>
-                        </div>
                       </div>
-                      <div class="card-body p-0">
-                        <div class="table-responsive">
-                          <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                              <tr>
-                                <th>Usuario</th>
-                                <th>Actividad</th>
-                                <th>Estado</th>
-                                <th>Hora</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center">
-                                    <div class="avatar bg-primary text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                      <span>JR</span>
-                                    </div>
-                                    <span>Juan Ramírez</span>
-                                  </div>
-                                </td>
-                                <td>Afiliación nueva</td>
-                                <td>
-                                  <span class="badge bg-success">Completado</span>
-                                </td>
-                                <td>09:45 AM</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center">
-                                    <div class="avatar bg-warning text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                      <span>ML</span>
-                                    </div>
-                                    <span>María López</span>
-                                  </div>
-                                </td>
-                                <td>Solicitud de cita</td>
-                                <td>
-                                  <span class="badge bg-warning text-dark">Pendiente</span>
-                                </td>
-                                <td>10:28 AM</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center">
-                                    <div class="avatar bg-danger text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                      <span>CP</span>
-                                    </div>
-                                    <span>Carlos Pérez</span>
-                                  </div>
-                                </td>
-                                <td>Actualización de datos</td>
-                                <td>
-                                  <span class="badge bg-primary">En proceso</span>
-                                </td>
-                                <td>11:15 AM</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center">
-                                    <div class="avatar bg-info text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                      <span>AM</span>
-                                    </div>
-                                    <span>Ana Martínez</span>
-                                  </div>
-                                </td>
-                                <td>Entrega de medicamentos</td>
-                                <td>
-                                  <span class="badge bg-success">Completado</span>
-                                </td>
-                                <td>12:05 PM</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center">
-                                    <div class="avatar bg-secondary text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                      <span>LG</span>
-                                    </div>
-                                    <span>Luis Gómez</span>
-                                  </div>
-                                </td>
-                                <td>Reclamo de servicio</td>
-                                <td>
-                                  <span class="badge bg-danger">Urgente</span>
-                                </td>
-                                <td>01:30 PM</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                      <div class="card-footer bg-white text-center">
-                        <a href="#" class="text-primary">Ver todas las actividades</a>
+                      <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                          {% for activity in recent_activities %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                              <span>{{ activity.description }}</span>
+                              <small class="text-muted">{{ activity.timestamp }}</small>
+                            </li>
+                          {% endfor %}
+                        </ul>
                       </div>
                     </div>
-                  </div>
-            
-                  <!-- Performance Indicators -->
-                  
                   </div>
                 </div>
               {% endblock %}
@@ -558,24 +429,22 @@
       
       $(document).ready(function () {
         $('#home-link').click(function (event) {
-            event.preventDefault(); 
-            
-            $.get("{{ url_for('admin') }}", function (data) {
-                let newContent = $(data).find("#content").html(); // Obtiene solo el contenido dentro de #content
-                $("#content").html(newContent); // Reemplaza el contenido sin duplicar la estructura
-    
-                console.log("Contenido del panel de administración cargado correctamente.");
-                window.history.pushState(null, "", "{{ url_for('admin') }}"); 
-            });
-        });
-    
+          event.preventDefault()
+      
+          $.get("{{ url_for('admin') }}", function (data) {
+            let newContent = $(data).find('#content').html() // Obtiene solo el contenido dentro de #content
+            $('#content').html(newContent) // Reemplaza el contenido sin duplicar la estructura
+      
+            console.log('Contenido del panel de administración cargado correctamente.')
+            window.history.pushState(null, '', "{{ url_for('admin') }}")
+          })
+        })
+      
         // Manejar el botón "atrás" del navegador
         window.onpopstate = function () {
-            location.reload();
-        };
-    });
-    
-      
+          location.reload()
+        }
+      })
     </script>
   </body>
 </html>

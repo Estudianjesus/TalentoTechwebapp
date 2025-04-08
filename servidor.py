@@ -156,9 +156,6 @@ def ver_solicitudes():
     if current_user.rol not in ['Administrador', 'Subadministrador']:
         return redirect(url_for('home'))
     
-    print(f"Rol del usuario: {current_user.rol}")
-    
-    # Obtener todas las solicitudes desde la base de datos
     solicitudes = solicitudes_afiliacion.query.all()
     
     solicitudes_json = [{
@@ -171,7 +168,6 @@ def ver_solicitudes():
         'estado': s.estado
     } for s in solicitudes]
     
-    # Obtener el timestamp de la última modificación
     ultimo_timestamp = round(time.time() * 1000)
     
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -181,15 +177,15 @@ def ver_solicitudes():
             'timestamp': ultimo_timestamp
         })
     
-    # Si no es AJAX, renderizar el template normalmente
+   
     return render_template('admin/solicitud_admin.html', solicitudes=solicitudes_json, usuario=current_user, timestamp=ultimo_timestamp)
 
 @app.route('/admin/solicitudes/aceptar/<int:solicitud_id>', methods=['POST'])
 @login_required
+
 def aceptar_solicitud(solicitud_id):
-    
-    if current_user.rol not in ['administrador', 'subadministrador']:
-            return redirect(url_for('no_autorizado'))
+    if current_user.rol not in ['Administrador', 'subadministrador']:
+        return redirect(url_for('login_admin'))
         
     print(f"🔍 Inicio de la función aceptar_solicitud con solicitud_id: {solicitud_id}")
     
@@ -461,7 +457,7 @@ from datetime import datetime
 
 @app.route('/admin/cita', methods=['GET'])
 def citas_admi():
-    citas = Cita.query.options(joinedload(Cita.paciente)).all()  
+    citas = Cita.query.options(joinedload(Cita.paciente)).filter(Cita.estado == 'Programada').all()
 
     # Verificar si se están obteniendo citas
     print(f'Citas obtenidas: {len(citas)}')  # Muestra cuántas citas se han recuperado
@@ -484,58 +480,73 @@ def citas_admi():
     return render_template('admin/cargar_citas.html', citas=citas_json)
 
 
+from datetime import datetime
+
+from datetime import datetime, timedelta
+
 @app.route('/atender_cita/<int:cita_id>', methods=['GET', 'POST'])
 def atender_cita(cita_id):
     cita = Cita.query.get_or_404(cita_id)
-    medicamentos = Medicamento.query.all()  # Obtener todos los medicamentos para la selección
+    medicamentos = Medicamento.query.all()
 
     if request.method == 'POST':
-        recomendacion = request.form['recomendacion']
+        recomendacion = request.form.get('recomendacion', '').strip()
         medicamentos_seleccionados = request.form.getlist('medicamentos[]')
         indicaciones = request.form.getlist('indicaciones[]')
+        duraciones = request.form.getlist('duraciones[]')
 
-        # Guardar cada medicamento con su indicación
+        if not (medicamentos_seleccionados and indicaciones and duraciones) or \
+           not (len(medicamentos_seleccionados) == len(indicaciones) == len(duraciones)):
+            flash('⚠️ Error: Complete todos los campos de medicamentos.', 'danger')
+            return redirect(request.url)
+
         for i in range(len(medicamentos_seleccionados)):
+            medicamento_id = int(medicamentos_seleccionados[i])
+            indicacion = indicaciones[i].strip()
+            duracion_dias = int(duraciones[i])
+            fecha_tratamiento_fin = datetime.utcnow() + timedelta(days=duracion_dias)
+
+            # Guardar atención médica
             atencion = AtencionCita(
                 cita_id=cita.id,
-                medicamento_id=medicamentos_seleccionados[i],
+                medicamento_id=medicamento_id,
                 recomendacion=recomendacion,
-                indicacion=indicaciones[i]  # Guardar la indicación del medicamento
+                indicacion=indicacion
             )
             db.session.add(atencion)
 
-        # Mover la cita a la tabla de historial
-        historial_cita = HistorialCita(
-            id=cita.id,
-            paciente_id=cita.paciente_id,
-            fecha=cita.fecha,
-            hora=cita.hora,
-            tipo_servicio=cita.tipo_servicio,
-            especialidad=cita.especialidad,
-            estado='Atendida'  # Cambiar el estado al mover la cita
-        )
-        db.session.add(historial_cita)
+            # Guardar seguimiento del paciente
+            estado = RegistroRetiroMedicamento(
+                paciente_id=cita.paciente_id,
+                medicamento_id=medicamento_id,
+                indicacion=indicacion,
+                fecha_tratamiento_fin=fecha_tratamiento_fin,
+                fecha_registro=datetime.utcnow()
+            )
+            db.session.add(estado)
 
-        # Eliminar la cita de la tabla original
-        db.session.delete(cita)
-
+        cita.estado = 'Atendida'
         db.session.commit()
 
-        return redirect(url_for('citas_admi'))  # Redirigir al panel de citas
+        flash('✅ Cita atendida y medicamentos registrados correctamente.', 'success')
+        return redirect(url_for('citas_admi'))
 
     return render_template('admin/atender_cita.html', cita=cita, medicamentos=medicamentos)
 
-@app.route('/historial_citas', methods=['GET'])
+
+
+
+@app.route('/historial_atencion', methods=['GET'])
 def historial_citas():
     try:
         # Obtener todas las citas del historial
-        citas_historial = HistorialCita.query.all()
+        citas = Cita.query.filter_by(estado='Atendida').all()
 
-        if not citas_historial:
+        if not citas:
             return render_template('admin/historial_citas.html', citas=[])  # Si no hay citas, mostrar una lista vacía
 
         # Pasar las citas a la plantilla
-        return render_template('admin/historial_citas.html', citas=citas_historial)
+        return render_template('admin/historial_citas.html', citas=citas)
 
     except Exception as e:
         return render_template('admin/historial_citas.html', error="Error al obtener el historial")
@@ -907,6 +918,7 @@ def portal_paciente():
 @app.route('/portal_paciente/inicio')
 @paciente_required
 def Inicio():
+
     paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
     return render_template('usuario_dasword.html' ,paciente=paciente)
 
@@ -923,6 +935,7 @@ def guardar_cita():
     data = request.json
     print("📩 Datos recibidos:", data)
 
+    
     try:
         # Buscar paciente en la tabla Paciente usando el número de documento
         paciente = Paciente.query.filter_by(numero_documento=data.get('numero_documento')).first()
@@ -1147,10 +1160,8 @@ def citas_paciente():
             print(f"Cita formateada: {json.dumps(cita_dict)}")
             citas_json.append(cita_dict)
         
-        respuesta = {'success': True, 'citas': citas_json}
-        print(f"\nRespuesta final: success=True, {len(citas_json)} citas")
-        print("======= FIN DE API CITAS_PACIENTE =======")
-        return jsonify(respuesta)
+        # Renderizar la plantilla con las citas
+        return render_template('ver_citaspacientes.html', citas=citas_json, paciente=paciente)
     
     except Exception as e:
         print(f"EXCEPCIÓN INESPERADA: {str(e)}")
@@ -1161,7 +1172,6 @@ def citas_paciente():
             'message': f'Error interno: {str(e)}', 
             'citas': []
         })
-        
         
 @app.route('/api/cancelar_cita/<int:cita_id>', methods=['DELETE'])
 @paciente_required

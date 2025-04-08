@@ -1,75 +1,76 @@
 {% extends "admin/admin_dashboard.html" %}
 {% block content %}
 
-<h1>Atender Cita: {{ cita.nombre_paciente }}</h1>
 
-<form method="POST">
+<h1 class="text-center my-4">Atender Cita: {{ cita.nombre_paciente }}</h1>
+
+<form method="POST" class="p-4 bg-light rounded shadow-sm">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
     <!-- Campo para la recomendación -->
-    <div class="form-group mb-3">
-        <label for="recomendacion">Recomendación para la Cita:</label>
+    <div class="form-group mb-4">
+        <label for="recomendacion" class="form-label fw-bold">Recomendación para la Cita:</label>
         <textarea name="recomendacion" id="recomendacion" class="form-control" rows="4" required 
                   placeholder="Escriba una recomendación médica para el paciente."></textarea>
     </div>
 
     <!-- Selección de Medicamentos -->
-    <div class="form-group mb-3">
-        <label>Seleccionar Medicamentos:</label>
+    <div class="form-group mb-4">
+        <label class="form-label fw-bold">Seleccionar Medicamentos:</label>
         <div id="medicamentos-container">
-            <div class="medicamento-row d-flex align-items-center mb-2">
-                <select name="medicamentos[]" class="form-control me-2" required>
+            <div class="medicamento-row d-flex align-items-center mb-3">
+                <select name="medicamentos[]" class="form-select me-2" required>
                     <option value="">Seleccione un medicamento</option>
                     {% for medicamento in medicamentos %}
-                        <option value="{{ medicamento.id }}">
-                            {{ medicamento.nombre }} - {{ medicamento.presentacion }}
-                        </option>
+                        <option value="{{ medicamento.id }}">{{ medicamento.nombre }} - {{ medicamento.presentacion }}</option>
                     {% endfor %}
                 </select>
                 <input type="text" name="indicaciones[]" class="form-control me-2" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
                 <input type="number" name="cantidad[]" class="form-control me-2" placeholder="Cantidad" min="1" required>
-                <button type="button" class="btn btn-danger btn-sm ms-2 remove-medicamento">X</button>
+                <input type="number" name="duraciones[]" class="form-control me-2" placeholder="Duración (días)" min="1" required>
+                <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-medicamento">X</button>
             </div>
         </div>
-        <button type="button" class="btn btn-primary btn-sm mt-2" id="add-medicamento">Añadir otro medicamento</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="add-medicamento">Añadir otro medicamento</button>
     </div>
 
-    <!-- Botón para guardar -->
-    <div class="d-flex justify-content-between">
+    <!-- Botones -->
+    <div class="d-flex justify-content-between mt-4">
+        <a href="/admin" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i> Volver</a>
         <button type="submit" class="btn btn-success">Atender y Asignar Medicamentos</button>
     </div>
-
 </form>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById("add-medicamento").addEventListener("click", function() {
-        let container = document.getElementById("medicamentos-container");
-        let newRow = document.createElement("div");
-        newRow.classList.add("medicamento-row", "d-flex", "align-items-center", "mb-2");
-
-        newRow.innerHTML = `
-            <select name="medicamentos[]" class="form-control me-2" required>
-                <option value="">Seleccione un medicamento</option>
-                {% for medicamento in medicamentos %}
-                    <option value="{{ medicamento.id }}">
-                        {{ medicamento.nombre }} - {{ medicamento.presentacion }}
-                    </option>
-                {% endfor %}
-            </select>
-            <input type="text" name="indicaciones[]" class="form-control me-2" placeholder="Indicación (Ej: 1 cada 8 horas)" required>
-            <input type="number" name="cantidad[]" class="form-control me-2" placeholder="Cantidad" min="1" required>
-            <button type="button" class="btn btn-danger btn-sm ms-2 remove-medicamento">X</button>
-        `;
-
-        container.appendChild(newRow);
+    document.addEventListener("DOMContentLoaded", function() {
+        const medicamentosContainer = document.getElementById("medicamentos-container");
+        const addBtn = document.getElementById("add-medicamento");
+    
+        addBtn.addEventListener("click", function() {
+            const newRow = document.createElement("div");
+            newRow.classList.add("medicamento-row", "d-flex", "align-items-center", "mb-3");
+            newRow.innerHTML = `
+                <select name="medicamentos[]" class="form-select me-2" required>
+                    <option value="">Seleccione un medicamento</option>
+                    {% for medicamento in medicamentos %}
+                        <option value="{{ medicamento.id }}">{{ medicamento.nombre }} - {{ medicamento.presentacion }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="indicaciones[]" class="form-control me-2" placeholder="Indicación" required>
+                <input type="number" name="cantidad[]" class="form-control me-2" placeholder="Cantidad" min="1" required>
+                <input type="number" name="duraciones[]" class="form-control me-2" placeholder="Duración (días)" min="1" required>
+                <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-medicamento">X</button>
+            `;
+            medicamentosContainer.appendChild(newRow);
+        });
+    
+        medicamentosContainer.addEventListener("click", function(e) {
+            if (e.target.classList.contains("remove-medicamento")) {
+                e.target.parentElement.remove();
+            }
+        });
     });
-
-    document.getElementById("medicamentos-container").addEventListener("click", function(event) {
-        if (event.target.classList.contains("remove-medicamento")) {
-            event.target.parentElement.remove();
-        }
-    });
-});
 </script>
 
 {% endblock %}
+

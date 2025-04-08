@@ -84,13 +84,11 @@ function mostrarMedicamentos(medicamentos) {
         } else {
             // Incrementar la cantidad si ya existe
             medicamentosAgrupados[clave].cantidad += 1;
-            // NO sumamos el stock porque es la disponibilidad real en inventario
-            // medicamentosAgrupados[clave].stock += med.stock; <- Esta línea se elimina
         }
     });
     
     let html = '<table class="table table-hover table-striped mt-3">';
-    html += '<thead class="table-primary"><tr><th>Medicamento</th><th>Indicación</th><th>Cantidad</th><th>Fecha Receta</th><th>Válido Hasta</th><th>disponibilidad</th></tr></thead><tbody>';
+    html += '<thead class="table-primary"><tr><th>Medicamento</th><th>Indicación</th><th>Cantidad</th><th>Fecha Receta</th><th>Válido Hasta</th><th>Disponibilidad</th></tr></thead><tbody>';
     
     // Convertir el objeto agrupado de nuevo a array para iterar
     Object.values(medicamentosAgrupados).forEach(med => {

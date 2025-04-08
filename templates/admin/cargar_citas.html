@@ -86,7 +86,7 @@
     }
 </style>
 <h1>Panel de Administración de Citas</h1>
-    <a href="{{url_for('historial_citas')}}">Ver Historial de Citas</a>
+<a href="{{url_for('historial_citas')}}">Ver Historial de Citas</a>
 <!-- Tabla para mostrar las citas -->
 <table border="1" id="tabla-citas">
     <thead>
@@ -104,6 +104,9 @@
         <!-- Las citas se llenarán aquí dinámicamente -->
     </tbody>
 </table>
+<p id="mensaje-sin-citas" style="display: none; text-align: center; color: #e74c3c; font-weight: bold;">
+    No hay citas agendadas.
+</p>
 
 <script>
     // Función para cargar las citas mediante AJAX
@@ -115,27 +118,35 @@
                 // Limpiar el contenido actual de la tabla
                 $('#tabla-citas tbody').empty();
 
-                // Iterar sobre las citas y agregarlas a la tabla
-                data.forEach(function(cita) {
-                    var fila = `<tr>
-                        <td>${cita.id}</td>
-                        <td>${cita.nombre_paciente}</td>
-                        <td>${cita.tipo_servicio}</td>
-                        <td>${cita.especialidad}</td>
-                        <td>${cita.fecha} ${cita.hora}</td>
-                        <td>${cita.estado}</td>
-                        <td>
-                           <a href="/atender_cita/${cita.id}" class=" btn-success text-decoration-none">
-    ✏️ Atender
-</a>
-                            <a href="/cancelar_cita/${cita.id}" class="text-decoration-none text-danger" 
-                               onclick="return confirm('¿Estás seguro de cancelar esta cita?');" title="Cancelar">
-                                <i class="fas fa-trash-alt"></i> 
-                            </a>
-                        </td>
-                    </tr>`;
-                    $('#tabla-citas tbody').append(fila);
-                });
+                if (data.length === 0) {
+                    // Mostrar mensaje si no hay citas
+                    $('#mensaje-sin-citas').show();
+                } else {
+                    // Ocultar mensaje si hay citas
+                    $('#mensaje-sin-citas').hide();
+
+                    // Iterar sobre las citas y agregarlas a la tabla
+                    data.forEach(function(cita) {
+                        var fila = `<tr>
+                            <td>${cita.id}</td>
+                            <td>${cita.nombre_paciente}</td>
+                            <td>${cita.tipo_servicio}</td>
+                            <td>${cita.especialidad}</td>
+                            <td>${cita.fecha} ${cita.hora}</td>
+                            <td>${cita.estado}</td>
+                            <td>
+                                <a href="/atender_cita/${cita.id}" class="btn-success text-decoration-none">
+                                    ✏️ Atender
+                                </a>
+                                <a href="/cancelar_cita/${cita.id}" class="text-decoration-none text-danger" 
+                                   onclick="return confirm('¿Estás seguro de cancelar esta cita?');" title="Cancelar">
+                                    <i class="fas fa-trash-alt"></i> 
+                                </a>
+                            </td>
+                        </tr>`;
+                        $('#tabla-citas tbody').append(fila);
+                    });
+                }
             },
             error: function(error) {
                 console.log('Error al cargar las citas:', error);

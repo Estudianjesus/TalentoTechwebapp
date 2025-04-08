@@ -69,6 +69,9 @@ class solicitudes_afiliacion(db.Model):
     ficha_sisben = db.Column(db.Enum('Grupo A', 'Grupo B', 'Grupo C', name='sisben_groups'), nullable=False)
     estado = db.Column(db.Enum('Pendiente', 'Aprobado', 'Rechazado'), default='Pendiente')
     fecha_solicitud = db.Column(db.DateTime, default=datetime.utcnow)
+    
+def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
     
@@ -126,7 +129,7 @@ class AtencionCita(db.Model):
     cantidad_recetada = db.Column(db.Integer, default=1)
      
     cita = db.relationship('Cita', backref='atenciones')  # Relación con la tabla Cita
-   
+    medicamento = db.relationship('Medicamento', backref='atenciones')  # Relación con la tabla Medicamento
 
 
 
@@ -165,13 +168,15 @@ class Medicamento(db.Model):
         }
 
 class RegistroRetiroMedicamento(db.Model):
-    __tablename__ = 'registro_retiro_medicamento'
+    __tablename__ = 'registroretiromedicamento'
     id = db.Column(db.Integer, primary_key=True)
     paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'), nullable=False)  # Nombre correcto de la tabla
     medicamento_id = db.Column(db.Integer, db.ForeignKey('medicamento.id'), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False, default=1)
-    fecha_retiro = db.Column(db.DateTime, default=datetime.utcnow)
-
+    indicacion = db.Column(db.String(255), nullable=False)  # Nuevo campo para la indicación
+    fecha_retiro = db.Column(db.DateTime)
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_tratamiento_fin= db.Column(db.DateTime, nullable=True)  # Nuevo campo para la fecha de tratamiento fin
     # Relaciones
     paciente = db.relationship("Paciente", back_populates="retiros")
     medicamento = db.relationship('Medicamento', backref='retiros')

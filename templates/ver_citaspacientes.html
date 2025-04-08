@@ -1,0 +1,94 @@
+{% extends "usuario_dasword.html" %}
+
+{% block content %}
+<h2>Lista de Citas del Paciente</h2>
+
+<p><strong>Paciente:</strong> {{ paciente.nombre }}</p>
+
+<div id="citas-container"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const citasContainer = document.getElementById("citas-container");
+
+        const citas = {{ citas|tojson }};
+
+        if (!citas || citas.length === 0) {
+            citasContainer.innerHTML = "<p>No hay citas registradas.</p>";
+            return;
+        }
+
+        citas.forEach(cita => {
+            const citaCard = document.createElement("div");
+            citaCard.classList.add("cita-card");
+
+            citaCard.innerHTML = `
+                <p><strong>Fecha:</strong> ${cita.fecha}</p>
+                <p><strong>Hora:</strong> ${cita.hora}</p>
+                <p><strong>Motivo:</strong> ${cita.motivo || 'Sin especificar'}</p>
+                <p><strong>Tipo de Servicio:</strong> ${cita.tipo_servicio}</p>
+                ${cita.especialidad ? `<p><strong>Especialidad:</strong> ${cita.especialidad}</p>` : ''}
+                ${cita.tipo_examen ? `<p><strong>Examen:</strong> ${cita.tipo_examen}</p>` : ''}
+                <p><strong>Estado:</strong> ${cita.estado}</p>
+                <button class="cancel-button" data-id="${cita.id}">Cancelar</button>
+            `;
+
+            citasContainer.appendChild(citaCard);
+
+            // Agrega evento de clic
+            citaCard.addEventListener("click", () => {
+                alert(`Cita seleccionada:\nFecha: ${cita.fecha}\nHora: ${cita.hora}`);
+            });
+
+            // Botón cancelar (simulado)
+            const cancelButton = citaCard.querySelector(".cancel-button");
+            cancelButton.addEventListener("click", function (event) {
+                event.stopPropagation();  // evitar que se dispare el alert de la tarjeta
+                if (confirm("¿Deseas cancelar esta cita?")) {
+                    alert("Cita cancelada (simulado).");
+                    // Aquí puedes hacer un fetch DELETE o POST al backend si lo implementas
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    #citas-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .cita-card {
+        background: #f0f8ff;
+        border: 1px solid #ccc;
+        padding: 15px;
+        width: 280px;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+        cursor: pointer;
+    }
+
+    .cita-card:hover {
+        transform: scale(1.03);
+        background: #e6f7ff;
+    }
+
+    .cancel-button {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+
+    .cancel-button:hover {
+        background-color: #c0392b;
+    }
+</style>
+{% endblock %}
