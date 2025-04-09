@@ -1,0 +1,482 @@
+{% extends "usuario_dasword.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Mis Medicamentos</h1>
+    
+    <div class="alert alert-info" role="alert">
+        Aquí puedes ver los medicamentos que te han sido recetados por tu médico.
+        Puedes consultar los detalles de cada medicamento y su disponibilidad en la farmacia.
+    </div>
+
+    <!-- Alerta para medicamentos próximos a vencer (se mostrará dinámicamente) -->
+    <div id="alertaMedicamentosProximosVencer" class="alert alert-warning d-none" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>¡Atención!</strong> Tienes medicamentos próximos a vencer.
+        <span id="detalleMedicamentosVencer"></span>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Medicamentos Recetados</h5>
+            <button id="actualizarMedicamentos" class="btn btn-sm btn-light">Actualizar</button>
+        </div>
+        <div class="card-body">
+            <div id="cargando" class="text-center py-4 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Obteniendo medicamentos...</p>
+            </div>
+            
+            <div id="errorMedicamentos" class="alert alert-danger d-none" role="alert"></div>
+            <div id="sinMedicamentos" class="alert alert-info d-none" role="alert">
+                No tiene medicamentos recetados actualmente.
+            </div>
+
+            <div id="contenedorMedicamentos">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Medicamento</th>
+                                <th>Indicación</th>
+                                <th>Fecha de Vencimiento</th>
+                                <th>Cantidad</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaMedicamentos">
+                            <!-- Los medicamentos se cargarán dinámicamente aquí -->
+                            {% if retiros and retiros|length > 0 %}
+                            <!-- Esta sección se puede usar como una carga inicial hasta que JS cargue los datos dinámicamente -->
+                            {% for retiro in retiros %}
+                            <tr class="retiro-inicial" data-id="{{ retiro.id }}">
+                                <td>{{ retiro.medicamento.nombre if retiro.medicamento else 'No disponible' }}</td>
+                                <td>{{ retiro.indicacion }}</td>
+                                <td>{{ retiro.fechaFinMedicamento.strftime('%d/%m/%Y') if retiro.fechaFinMedicamento else 'Sin fecha' }}</td>
+                                <td>{{ retiro.cantidad if retiro.cantidad else 'No especificada' }}</td>
+                                <td>
+                                    {% if retiro.medicamento and retiro.medicamento.stock > 0 %}
+                                    <span class="badge bg-success">Disponible</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Sin stock</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-info ver-detalles" onclick="mostrarDetallesMedicamento({{ retiro.id }})" data-id="{{ retiro.id }}">
+                                        <i class="fas fa-eye"></i> Detalles
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr id="sin-datos-iniciales">
+                                <td colspan="6" class="text-center py-3">Cargando medicamentos...</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalles del medicamento -->
+<div class="modal fade" id="medicamentoModal" tabindex="-1" aria-labelledby="medicamentoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="medicamentoModalLabel">Detalles del Medicamento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="nombreMedicamento" class="mb-3 text-primary"></h4>
+                <div class="mb-3">
+                    <label class="fw-bold">Descripción:</label>
+                    <p id="descripcionMedicamento" class="mb-2"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Indicación médica:</label>
+                    <p id="indicacionMedicamento" class="mb-2"></p>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Fecha de receta:</label>
+                        <p id="fechaRetiroMedicamento" class="mb-0"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Fecha de vencimiento:</label>
+                        <p id="fechaFinMedicamento" class="mb-0"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Cantidad:</label>
+                        <p id="cantidadRecetadaMedicamento" class="mb-0"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Disponibilidad:</label>
+                        <p id="disponibilidadMedicamento" class="mb-0"></p>
+                    </div>
+                </div>
+                <div id="stockInfo" class="d-none">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="stockMensaje"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar medicamentos desde la API cuando la página se carga
+    cargarMedicamentos();
+    
+    // Configurar evento para el botón de actualizar
+    document.getElementById('actualizarMedicamentos').addEventListener('click', function() {
+        cargarMedicamentos();
+    });
+    
+    // Configurar eventos para botones de detalles iniciales
+    document.querySelectorAll('.ver-detalles').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const retiroId = this.getAttribute('data-id');
+            mostrarDetallesMedicamento(retiroId);
+        });
+    });
+});
+
+function cargarMedicamentos() {
+    // Mostrar indicador de carga
+    document.getElementById('cargando').classList.remove('d-none');
+    document.getElementById('errorMedicamentos').classList.add('d-none');
+    document.getElementById('sinMedicamentos').classList.add('d-none');
+    document.getElementById('alertaMedicamentosProximosVencer').classList.add('d-none');
+    
+    // Ocultar filas iniciales si existen
+    document.querySelectorAll('.retiro-inicial').forEach(function(row) {
+        row.classList.add('d-none');
+    });
+    
+    // Eliminar fila de "sin datos iniciales" si existe
+    const sinDatosRow = document.getElementById('sin-datos-iniciales');
+    if (sinDatosRow) sinDatosRow.remove();
+    
+    fetch('/api/medicamentos_recetados')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('cargando').classList.add('d-none');
+            
+            if (!data.success) {
+                document.getElementById('errorMedicamentos').classList.remove('d-none');
+                document.getElementById('errorMedicamentos').textContent = data.message || 'Error al cargar medicamentos';
+                return;
+            }
+            
+            const medicamentos = data.medicamentos_recetados;
+            const listaMedicamentos = document.getElementById('listaMedicamentos');
+            
+            // Limpiar lista pero preservar las filas iniciales ocultas
+            Array.from(listaMedicamentos.children).forEach(function(child) {
+                if (!child.classList.contains('retiro-inicial') && child.id !== 'sin-datos-iniciales') {
+                    child.remove();
+                }
+            });
+            
+            if (medicamentos.length === 0) {
+                document.getElementById('sinMedicamentos').classList.remove('d-none');
+                return;
+            }
+            
+            // Verificar medicamentos próximos a vencer (dentro de 7 días)
+            const hoy = new Date();
+            const limiteDias = 7; // Días para considerar como próximo a vencer
+            const medicamentosProximosVencer = [];
+            
+            // Agrupar medicamentos por tipo (nombre)
+            const medicamentosPorTipo = {};
+            
+            medicamentos.forEach(function(med) {
+                // Verificar si está próximo a vencer
+                if (med.fecha_tratamiento_fin) {
+                    const fechaVencimiento = new Date(med.fecha_tratamiento_fin);
+                    const diferenciaDias = Math.ceil((fechaVencimiento - hoy) / (1000 * 60 * 60 * 24));
+                    
+                    if (diferenciaDias >= 0 && diferenciaDias <= limiteDias) {
+                        medicamentosProximosVencer.push({
+                            nombre: med.nombre,
+                            fecha: formatearFecha(med.fecha_tratamiento_fin),
+                            diasRestantes: diferenciaDias
+                        });
+                    }
+                }
+                
+                // Agrupar por tipo (nombre)
+                const nombreMedicamento = med.nombre.trim();
+                
+                if (!medicamentosPorTipo[nombreMedicamento]) {
+                    medicamentosPorTipo[nombreMedicamento] = {
+                        nombre: nombreMedicamento,
+                        indicaciones: [],
+                        fechas_vencimiento: [],
+                        disponible: med.disponible,
+                        stock: med.stock || 0,
+                        cantidades: [],
+                        descripcion: med.descripcion,
+                        fecha_retiro: med.fecha_retiro,
+                        id: med.id,
+                        detalles: [med] // Guardamos todos los medicamentos individuales para acceso posterior
+                    };
+                }
+                
+                // Agregar indicación si es única
+                if (med.indicacion && !medicamentosPorTipo[nombreMedicamento].indicaciones.includes(med.indicacion)) {
+                    medicamentosPorTipo[nombreMedicamento].indicaciones.push(med.indicacion);
+                }
+                
+                // Agregar fecha si es única
+                if (med.fecha_tratamiento_fin && !medicamentosPorTipo[nombreMedicamento].fechas_vencimiento.includes(med.fecha_tratamiento_fin)) {
+                    medicamentosPorTipo[nombreMedicamento].fechas_vencimiento.push(med.fecha_tratamiento_fin);
+                }
+                
+                // Agregar cantidad si existe
+                if (med.cantidad && !medicamentosPorTipo[nombreMedicamento].cantidades.includes(med.cantidad)) {
+                    medicamentosPorTipo[nombreMedicamento].cantidades.push(med.cantidad);
+                }
+                
+                // Actualizar disponibilidad si alguno está disponible
+                if (med.disponible) {
+                    medicamentosPorTipo[nombreMedicamento].disponible = true;
+                }
+            });
+            
+            // Mostrar alerta de medicamentos próximos a vencer
+            if (medicamentosProximosVencer.length > 0) {
+                const alertaVencimiento = document.getElementById('alertaMedicamentosProximosVencer');
+                const detalleVencimiento = document.getElementById('detalleMedicamentosVencer');
+                
+                // Crear mensaje específico
+                let mensaje = ' Revisa: ';
+                medicamentosProximosVencer.forEach((med, index) => {
+                    mensaje += `${med.nombre} (vence en ${med.diasRestantes} día${med.diasRestantes !== 1 ? 's' : ''})`;
+                    if (index < medicamentosProximosVencer.length - 1) {
+                        mensaje += ', ';
+                    }
+                });
+                
+                detalleVencimiento.textContent = mensaje;
+                alertaVencimiento.classList.remove('d-none');
+            }
+            
+            // Mostrar medicamentos agrupados
+            const medicamentosAgrupados = Object.values(medicamentosPorTipo);
+            
+            medicamentosAgrupados.forEach(function(med) {
+                const row = document.createElement('tr');
+                
+                const nombreCell = document.createElement('td');
+                nombreCell.textContent = med.nombre;
+                
+                const indicacionCell = document.createElement('td');
+                indicacionCell.textContent = med.indicaciones.length > 0 ? 
+                    med.indicaciones.join(', ') : 'No especificada';
+                
+                const fechaVencimientoCell = document.createElement('td');
+                if (med.fechas_vencimiento.length > 0) {
+                    // Ordenar fechas de vencimiento (más cercana primero)
+                    const fechasOrdenadas = [...med.fechas_vencimiento].sort();
+                    fechaVencimientoCell.textContent = formatearFecha(fechasOrdenadas[0]);
+                    
+                    // Si hay múltiples fechas, indicarlo
+                    if (fechasOrdenadas.length > 1) {
+                        const badgeMultiple = document.createElement('span');
+                        badgeMultiple.className = 'badge bg-info ms-2';
+                        badgeMultiple.textContent = `+${fechasOrdenadas.length - 1} más`;
+                        fechaVencimientoCell.appendChild(badgeMultiple);
+                    }
+                } else {
+                    fechaVencimientoCell.textContent = 'Sin fecha';
+                }
+
+                // Agregar celda para cantidad
+                const cantidadCell = document.createElement('td');
+                if (med.cantidades.length > 0) {
+                    // Mostrar la suma de todas las cantidades
+                    const totalCantidad = med.cantidades.reduce((a, b) => a + parseInt(b || 0), 0);
+                    cantidadCell.textContent = totalCantidad.toString();
+                } else {
+                    cantidadCell.textContent = 'No especificada';
+                }
+                
+                const estadoCell = document.createElement('td');
+                if (med.disponible) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-success';
+                    badge.textContent = 'Disponible';
+                    estadoCell.appendChild(badge);
+                } else {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-danger';
+                    badge.textContent = 'Sin stock';
+                    estadoCell.appendChild(badge);
+                }
+                
+                const accionesCell = document.createElement('td');
+                accionesCell.className = 'text-center';
+                
+                const detallesBtn = document.createElement('button');
+                detallesBtn.className = 'btn btn-sm btn-info';
+                detallesBtn.innerHTML = '<i class="fas fa-eye"></i> Detalles';
+                detallesBtn.addEventListener('click', function() {
+                    mostrarModalMedicamentoAgrupado(med);
+                });
+                
+                accionesCell.appendChild(detallesBtn);
+                
+                row.appendChild(nombreCell);
+                row.appendChild(indicacionCell);
+                row.appendChild(fechaVencimientoCell);
+                row.appendChild(cantidadCell); // Agregamos la celda de cantidad
+                row.appendChild(estadoCell);
+                row.appendChild(accionesCell);
+                
+                listaMedicamentos.appendChild(row);
+            });
+        })
+        .catch(error => {
+            document.getElementById('cargando').classList.add('d-none');
+            document.getElementById('errorMedicamentos').classList.remove('d-none');
+            document.getElementById('errorMedicamentos').textContent = 'Error de conexión al cargar medicamentos';
+            console.error('Error:', error);
+        });
+}
+
+function mostrarModalMedicamentoAgrupado(medicamentoAgrupado) {
+    // Usar la primera receta para información básica
+    const medicamento = medicamentoAgrupado.detalles[0];
+    
+    document.getElementById('nombreMedicamento').textContent = medicamentoAgrupado.nombre;
+    document.getElementById('descripcionMedicamento').textContent = medicamentoAgrupado.descripcion || 'No disponible';
+    
+    // Mostrar todas las indicaciones
+    document.getElementById('indicacionMedicamento').textContent = 
+        medicamentoAgrupado.indicaciones.length > 0 ? 
+        medicamentoAgrupado.indicaciones.join(', ') : 'No especificada';
+    
+    document.getElementById('fechaRetiroMedicamento').textContent = 
+        medicamentoAgrupado.fecha_retiro ? formatearFecha(medicamentoAgrupado.fecha_retiro) : 'Pendiente';
+    
+    // Mostrar la fecha de vencimiento más cercana
+    if (medicamentoAgrupado.fechas_vencimiento.length > 0) {
+        const fechasOrdenadas = [...medicamentoAgrupado.fechas_vencimiento].sort();
+        document.getElementById('fechaFinMedicamento').textContent = formatearFecha(fechasOrdenadas[0]);
+    } else {
+        document.getElementById('fechaFinMedicamento').textContent = 'No especificada';
+    }
+    
+    // Mostrar cantidad
+    const cantidadRecetadaElem = document.getElementById('cantidadRecetadaMedicamento');
+    if (medicamentoAgrupado.cantidades && medicamentoAgrupado.cantidades.length > 0) {
+        // Mostrar la suma de todas las cantidades
+       
+
+        const totalCantidad = medicamentoAgrupado.cantidades.reduce((a, b) => {
+            const valorB = b !== null && b !== undefined ? Number(b) : 0;
+            return a + (isNaN(valorB) ? 0 : valorB);
+        }, 0);
+        
+        cantidadRecetadaElem.textContent = totalCantidad.toString();
+    } else {
+        cantidadRecetadaElem.textContent = 'No especificada';
+    }
+    
+    const disponibilidadElem = document.getElementById('disponibilidadMedicamento');
+    const stockInfo = document.getElementById('stockInfo');
+    const stockMensaje = document.getElementById('stockMensaje');
+    
+    if (medicamentoAgrupado.disponible) {
+        disponibilidadElem.innerHTML = '<span class="badge bg-success">Disponible</span>';
+        stockInfo.classList.remove('d-none');
+        stockMensaje.textContent = `Hay ${medicamentoAgrupado.stock} unidades disponibles en farmacia.`;
+    } else {
+        disponibilidadElem.innerHTML = '<span class="badge bg-danger">Sin stock</span>';
+        stockInfo.classList.remove('d-none');
+        stockMensaje.textContent = 'Actualmente no hay unidades disponibles en farmacia.';
+    }
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('medicamentoModal'));
+    modal.show();
+}
+
+function mostrarDetallesMedicamento(retiroId) {
+    // Esta función se usa para los botones de detalles iniciales
+    // Primero cargamos los datos actualizados desde la API
+    fetch('/api/medicamentos_recetados')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'Error al cargar detalles del medicamento');
+                return;
+            }
+            
+            // Aquí asumimos que podemos identificar el retiro por algún campo
+            const medicamentos = data.medicamentos_recetados;
+            const medicamento = medicamentos.find(m => m.id == retiroId);
+            
+            if (medicamento) {
+                mostrarModalMedicamento(medicamento);
+            } else {
+                alert('No se encontraron detalles para este medicamento');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error de conexión al cargar detalles del medicamento');
+        });
+}
+
+function mostrarModalMedicamento(medicamento) {
+    document.getElementById('nombreMedicamento').textContent = medicamento.nombre;
+    document.getElementById('descripcionMedicamento').textContent = medicamento.descripcion || 'No disponible';
+    document.getElementById('indicacionMedicamento').textContent = medicamento.indicacion || 'No especificada';
+    document.getElementById('fechaRetiroMedicamento').textContent = medicamento.fecha_retiro ? formatearFecha(medicamento.fecha_retiro) : 'Pendiente';
+    document.getElementById('fechaFinMedicamento').textContent = medicamento.fecha_tratamiento_fin ? formatearFecha(medicamento.fecha_tratamiento_fin) : 'No especificada';
+    
+    // Mostrar cantidad
+    document.getElementById('cantidadRecetadaMedicamento').textContent = medicamento.cantidad || 'No especificada';
+    
+    const disponibilidadElem = document.getElementById('disponibilidadMedicamento');
+    const stockInfo = document.getElementById('stockInfo');
+    const stockMensaje = document.getElementById('stockMensaje');
+    
+    if (medicamento.disponible) {
+        disponibilidadElem.innerHTML = '<span class="badge bg-success">Disponible</span>';
+        stockInfo.classList.remove('d-none');
+        stockMensaje.textContent = `Hay ${medicamento.stock} unidades disponibles en farmacia.`;
+    } else {
+        disponibilidadElem.innerHTML = '<span class="badge bg-danger">Sin stock</span>';
+        stockInfo.classList.remove('d-none');
+        stockMensaje.textContent = 'Actualmente no hay unidades disponibles en farmacia.';
+    }
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('medicamentoModal'));
+    modal.show();
+}
+
+function formatearFecha(fechaStr) {
+    const fecha = new Date(fechaStr);
+    return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+</script>
+{% endblock %}

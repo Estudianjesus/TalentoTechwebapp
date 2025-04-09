@@ -174,7 +174,6 @@ class RegistroRetiroMedicamento(db.Model):
     medicamento_id = db.Column(db.Integer, db.ForeignKey('medicamento.id'), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False, default=1)
     indicacion = db.Column(db.String(255), nullable=False)  # Nuevo campo para la indicación
-    fecha_retiro = db.Column(db.DateTime)
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
     fecha_tratamiento_fin= db.Column(db.DateTime, nullable=True)  # Nuevo campo para la fecha de tratamiento fin
     # Relaciones

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE >
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -15,7 +15,8 @@
     <!-- Toastify CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>}<link rel="stylesheet" href="{{ url_for('static', filename='css/estilos_usuario/agender_cita.css') }}" />
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos_usuario/perfil.css') }}">
     <!-- Estilos personalizados -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}" />
 
@@ -354,6 +355,55 @@
           display: block;
         }
       }
+
+      .card {
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.07) !important;
+      }
+      
+      .card-title {
+        font-weight: 600;
+        color: #333;
+      }
+      
+      .citas-lista {
+        border-radius: 8px;
+      }
+      
+      .cita-item {
+        transition: all 0.2s ease;
+        border-left-color: #4a6bff !important;
+        margin-bottom: 5px;
+        border-radius: 6px;
+        background-color: #fdfdfd;
+      }
+      
+      .cita-item:hover {
+        background-color: #f8f9ff;
+        transform: translateX(3px);
+      }
+      
+      .fecha-cita {
+        color: #333;
+        font-size: 1.05rem;
+      }
+      
+      .estado-cita {
+        background-color: #4a6bff;
+        padding: 8px 12px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+      }
+      
+      .text-primary {
+        color: #4a6bff !important;
+      }
+      
+      .servicio-text {
+        font-size: 0.8rem;
+        letter-spacing: 0.3px;
+        line-height: 1.5;
+      }
     </style>
   </head>
   <body>
@@ -380,19 +430,19 @@
           <nav class="main-nav d-none d-md-block">
             <ul class="main-nav-list d-flex">
               <li class="main-nav-item">
-                <a href="{{url_for('portal_paciente')}}" class="main-nav-link active"><i class="fas fa-home"></i> Inicio</a>
+                <a href="{{ url_for('portal_paciente') }}" class="main-nav-link active"><i class="fas fa-home"></i> Inicio</a>
               </li>
               <li class="main-nav-item">
-                <a href="{{url_for('citas_paciente')}}" class="main-nav-link"><i class="fas fa-calendar-alt"></i> Ver Citas</a>
+                <a href="{{ url_for('ver_citas_paciente') }}" class="main-nav-link"><i class="fas fa-calendar-alt"></i> Ver Citas</a>
               </li>
               <li class="main-nav-item">
                 <a href="{{ url_for('agendar') }}" class="main-nav-link"><i class="fas fa-plus-circle"></i> Agendar Cita</a>
               </li>
               <li class="main-nav-item">
-                <a href="#" class="main-nav-link"><i class="fas fa-history"></i> Historial</a>
+                <a href="{{ url_for('historial_cita_view') }}" class="main-nav-link"><i class="fas fa-history"></i> Historial</a>
               </li>
               <li class="main-nav-item">
-                <a href="#" class="main-nav-link"><i class="fas fa-user-md"></i> Medicamentos</a>
+                <a href="{{ url_for('mis_medicamentos_view') }}" class="main-nav-link"><i class="fas fa-user-md"></i> Medicamentos</a>
               </li>
             </ul>
           </nav>
@@ -431,6 +481,7 @@
               <li class="mobile-nav-item">
                 <a href="#" class="mobile-nav-link active"><i class="fas fa-home"></i> Inicio</a>
               </li>
+
               <li class="mobile-nav-item">
                 <a class="mobile-nav-link"><i class="fas fa-calendar-alt"></i> Citas</a>
               </li>
@@ -465,9 +516,96 @@
         </div>
       </header>
 
-      <main class="container mt-5">
+      <main class="container ">
+        {% if request.endpoint == 'portal_paciente' %}
+          <!-- Resumen personal del paciente -->
+            <div class="container-fluid mb-5">
+            <div class="row justify-content-center">
+              <div class="col-12">
+              <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                <h4 class="mb-0">Mi resumen personal</h4>
+                </div>
+                <div class="card-body">
+                <div class="row text-center g-3">
+                  <div class="col-6 col-md-3">
+                  <div class="p-3 border rounded">
+                    <i class="fas fa-calendar-day text-primary mb-2"></i>
+                    <h5>{{totalcitas}}</h5>
+                    <p class="small text-muted mb-0">Citas Programadas</p>
+                  </div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                  <div class="p-3 border rounded">
+                    <i class="fas fa-pills text-success mb-2"></i>
+                    <h5>{{totalmedicamentos}}</h5>
+                    <p class="small text-muted mb-0">Medicamentos Recetados</p>
+                  </div>
+                  </div>
+                    <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded">
+                    <i class="fas fa-calendar-check text-primary mb-2"></i>
+                    <h5>{{ totalcitas_atendidas }}</h5>
+                    <p class="small text-muted mb-0">Citas Atendidas</p>
+                    </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded">
+                    <i class="fas fa-clock text-warning mb-2"></i>
+                    <h5>{{ citas_pendientes }}</h5>
+                    <p class="small text-muted mb-0">Citas pendientes</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+              </div>
+              </div>
+            </div>
+            </div>
+
+            <!--citas programadas-->
+            <div class="container mb-5">
+              <div class="row justify-content-center">
+                <div class="col-12 col-md-7">
+                  <div class="card border-0 shadow-sm rounded-lg">
+                    <div class="card-body">
+                      <h5 class="card-title mb-3"><i class="fas fa-calendar-alt me-2 text-primary"></i>Citas próximas (10 días)</h5>
+                      {% if citas %}
+                        <ul class="list-group list-group-flush citas-lista">
+                          {% for cita in citas %}
+                          <li class="list-group-item d-flex justify-content-between align-items-center p-3 border-start border-4 cita-item">
+                            <div>
+                              <strong class="fecha-cita">{{ cita.fecha.strftime('%d/%m/%Y') }}</strong> 
+                              <p class="mb-0 small text-primary">{{ cita.hora }}</p>
+                              <p class="mb-0 small text-muted servicio-text">{{(cita.tipo_servicio)| upper}} - {{ (cita.especialidad) | upper }}</p>
+                            </div>
+                            <span class="badge rounded-pill estado-cita">{{ cita.estado }}</span>
+                          </li>
+                          {% endfor %}
+                        </ul>
+                      {% else %}
+                        <p class="text-muted text-center py-4">No tienes citas programadas en los próximos 10 días.</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <div class="card border-0 shadow-sm rounded-lg">
+                    <div class="card-body">
+
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+          
+          </div>
+        {% endif %}
         {% block content %}
-        {% endblock %}
+        
+      {% endblock %}
       </main>
     </div>
 
@@ -518,7 +656,7 @@
       })
     </script>
     <script src="{{ url_for('static', filename='js/usuario/abrir_perfil.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/usuario/citas_pacientes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/usuario/funcionalidad.js') }}"></script> 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Agregar SweetAlert2 (para mejores alertas) -->

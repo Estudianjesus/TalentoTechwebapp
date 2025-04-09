@@ -1,111 +1,6 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediGestión - Portal de Afiliados</title>
-      <!-- Bootstrap CSS -->
+{% extends "usuario_dasword.html" %}
+{% block content %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<!-- Chart.js para gráficos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-<!-- Toastify CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
-<!-- Toastify JS -->
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
-<!-- Estilos y scripts personalizados -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/porta.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/estilos_usuario/perfil.css') }}">
-
-
-
-</head>
-<body>
-    <div class="app-container">
-        <!-- Header Premium con Experiencia Mejorada -->
-        <header class="header">
-            <div class="header-content">
-                <div class="brand-section">
-                    <div class="logo-medi">
-                        <div class="logo-icon-circle">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                    </div>
-                    <div class="brand-text">
-                        <h1 class="brand-name">MediGestión</h1>
-                        <p class="brand-slogan">Tu salud es nuestra prioridad</p>
-                    </div>
-                </div>
-                
-                <!-- Navegación principal en el header -->
-                <nav class="main-nav">
-                    <ul class="main-nav-list">
-                        <li class="main-nav-item">
-                            <a href="{{ url_for('Inicio') }}" class="main-nav-link active">
-                                <i class="fas fa-home"></i> Inicio
-                            </a>
-                        </li>
-                        <li class="main-nav-item">
-                            <a href="#" class="main-nav-link">
-                                <i class="fas fa-stethoscope"></i> Médicos
-                            </a>
-                        </li>
-                        <li class="main-nav-item">
-                            <a href="#" class="main-nav-link">
-                                <i class="fas fa-hospital"></i> Centros
-                            </a>
-                        </li>
-                        <li class="main-nav-item">
-                            <a href="#" class="main-nav-link">
-                                <i class="fas fa-bell"></i> Notificaciones
-                                <span class="nav-badge">3</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                
-                <!-- Menú de usuario mejorado -->
-                <div class="user-section dropdown" id="userSection">
-                    <div class="user-menu-trigger d-flex align-items-center" id="userMenuTrigger">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="user-name" id="nombreapellido" >{{ paciente.primer_nombre | upper }}</span>
-                        <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.8;"></i>
-                    </div>
-                
-                    <div class="user-dropdown dropdown-menu">
-                        <div class="user-dropdown-header">
-                            <h4 class="user-dropdown-title" id="userDropdownName">{{ paciente.primer_nombre | upper ~ ' ' ~ paciente.primer_apellido | upper }}</h4>
-                            <p class="user-dropdown-subtitle" id="userDropdownId">{{paciente.tipo_documento ~ ':' ~ paciente.numero_documento }}</p>
-                        </div>
-                        <div class="user-dropdown-body">
-                            <a href="{{ url_for('perfil_usuario') }}" class="user-menu-link dropdown-item">
-                                <i class="fas fa-user-circle"></i>
-                                <span>Mi Perfil</span>
-                            </a>
-                            <a href="#" class="user-menu-link dropdown-item d-flex justify-content-between">
-                                <span><i class="fas fa-bell"></i> Notificaciones</span>
-                                <span class="ms-auto badge bg-danger rounded-pill">3</span>
-                            </a>
-                        </div>
-                        <div class="user-dropdown-footer">
-                            <a href="{{ url_for('salir') }}" class="logout-btn dropdown-item text-danger">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Cerrar Sesión</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-        
-        <!-- Navegación de pestañas mejorada -->
-        
 
         <div class="container py-5">
             <div class="patient-card bg-white mb-4">
@@ -378,11 +273,10 @@
                 </div>
             </div>
         </div>
-    
-<script src="{{ url_for('static', filename='js/usuario/funcionalidad.js') }}"></script> 
-<script src="{{ url_for('static', filename='js/usuario/abrir_perfil.js') }}"></script> 
+    </div>
+
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-</body>
-</html>
+
+{% endblock %}
 
 

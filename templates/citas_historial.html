@@ -1,9 +1,6 @@
 {% extends "usuario_dasword.html" %}
 
-{% block content %}
-<h2>Lista de Citas del Paciente</h2>
-
-<p><strong>Paciente:</strong> {{ paciente.nombre }}</p>
+{% block content %}    
 
 <div id="fechas-container" class="fechas-tabs"></div>
 <div id="citas-container" class="citas-container"></div>
@@ -18,7 +15,7 @@
     let fechasUnicas = [];
     
     // Obtener las citas desde la API
-    fetch('/api/citas_paciente', {
+    fetch('/api/hitorial_cita', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -38,27 +35,11 @@
             return;
         }
         
-        // CORRECCIÓN: Asegurarse de parsear correctamente la fecha
-        todasLasCitas.forEach(cita => {
-            // Asegurarse de que la fecha se interprete correctamente
-            // Utilizando split para obtener año, mes y día de forma explícita
-            const [año, mes, día] = cita.fecha.split('-').map(Number);
-            // Crear fecha usando año, mes (0-11 en JavaScript, por eso restamos 1) y día
-            cita.fechaObj = new Date(año, mes - 1, día);
-        });
+        // Ordenar citas por fecha
+        todasLasCitas.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
         
-        // Ordenar citas por fecha usando los objetos Date creados
-        todasLasCitas.sort((a, b) => a.fechaObj - b.fechaObj);
-        
-        // Extraer fechas únicas usando la fecha original de la base de datos
+        // Extraer fechas únicas
         fechasUnicas = [...new Set(todasLasCitas.map(cita => cita.fecha))];
-        
-        // Ordenar fechas únicas correctamente
-        fechasUnicas.sort((a, b) => {
-            const [añoA, mesA, díaA] = a.split('-').map(Number);
-            const [añoB, mesB, díaB] = b.split('-').map(Number);
-            return new Date(añoA, mesA - 1, díaA) - new Date(añoB, mesB - 1, díaB);
-        });
         
         // Crear pestañas de fechas
         crearPestañasFechas();
@@ -84,10 +65,8 @@
                 fechaTab.classList.add('active');
             }
             
-            // CORRECCIÓN: Formatear la fecha correctamente
-            const [año, mes, día] = fecha.split('-').map(Number);
-            const fechaObj = new Date(año, mes - 1, día);
-            
+            // Formatear la fecha para mostrarla de manera amigable
+            const fechaObj = new Date(fecha);
             const opciones = { weekday: 'short', day: 'numeric', month: 'short' };
             const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opciones);
             
@@ -126,10 +105,8 @@
         
         citasContainer.innerHTML = '';
         
-        // CORRECCIÓN: Crear el encabezado de la fecha seleccionada con formato correcto
-        const [año, mes, día] = fecha.split('-').map(Number);
-        const fechaObj = new Date(año, mes - 1, día);
-        
+        // Crear el encabezado de la fecha seleccionada
+        const fechaObj = new Date(fecha);
         const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const fechaCompleta = fechaObj.toLocaleDateString('es-ES', opcionesFecha);
         
@@ -163,7 +140,7 @@
                 <div class="cita-tiempo">
                     <i class="far fa-clock"></i> ${cita.hora}
                 </div>
-               <div class="cita-detalles">
+                <div class="cita-detalles">
                     <p class="cita-motivo"><strong>Servicio:</strong> ${(cita.tipo_servicio || 'No especificado').toUpperCase()}</p>
                     <p class="cita-especialidad"><strong>Especialidad:</strong> ${(cita.especialidad || 'No especificado').toUpperCase()}</p>
                     <p class="cita-tipo-examen"><strong>Tipo de Examen:</strong> ${(cita.tipo_examen || 'No especificado').toUpperCase()}</p>
@@ -171,11 +148,7 @@
                     <p class="cita-codigo"><strong>Código de Confirmación:</strong> ${(cita.codigo_confirmacion || 'No disponible')}</p>
                     <p class="cita-estado ${estadoClass}"><strong>Estado:</strong> ${cita.estado}</p>
                 </div>
-                <div class="cita-acciones">
-                    <button class="cancel-button" onclick="cancelarCita(${cita.id})">
-                        <i class="fas fa-times-circle"></i> Cancelar
-                    </button>
-                </div>
+                
             `;
             
             citasContainer.appendChild(citaCard);
@@ -545,3 +518,5 @@
 <!-- Añadir íconos de Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
+
+

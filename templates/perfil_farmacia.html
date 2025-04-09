@@ -1,17 +1,22 @@
 
 {% extends "dashboard_farmacia.html" %}
 {% block content %}
+<style>
+    .e {
+        background-color: #1a8b9d; !important;
+    }
+</style>
 <section class="perfil-section container py-5">
     <div class="card border-0 shadow-sm">
         <!-- Cabecera con colores institucionales típicos de EPS -->
-        <div class="card-header eps-header text-white py-3">
+        <div class="card-header eps-header e text-white py-3">
             <div class="d-flex align-items-center">
                 <span class="eps-logo me-3">EPS</span>
                 <h2 class="mb-0 fs-4">Perfil de Usuario - {{ usuario.primer_nombre }} {{ usuario.primer_apellido }}</h2>
             </div>
         </div>
         
-        <div class="card-body bg-light">
+        <div class="card-body bg-light ">
             <!-- Información del afiliado/usuario -->
             <div class="bg-white p-3 mb-4 rounded shadow-sm">
                 <div class="row">

@@ -122,7 +122,7 @@ def admin():
         return redirect(url_for('home'))
     
     total_afiliado = Paciente.query.count()
-    total_cita = Cita.query.count()
+    total_cita = Cita.query.filter_by(estado='Programada').count()
     total_solicitude = solicitudes_afiliacion.query.count()
     total_medicamento = Medicamento.query.count()
     return render_template('admin/admin_dashboard.html', usuario=current_user,total_afiliado=total_afiliado,total_cita=total_cita,total_solicitude=total_solicitude,total_medicamento=total_medicamento)
@@ -134,7 +134,7 @@ def admin():
 @login_required
 def perfil():
     # Si el usuario NO tiene rol permitido, lo rediriges a home
-    if current_user.rol not in ['Administrador', 'Subadministrador']:
+    if current_user.rol not in ['Administrador', 'Subadministrador','Farmacia']:
         return redirect(url_for('home'))
     
     # 🔹 Si el usuario es de Farmacia, lo mandamos a su perfil específico
@@ -494,6 +494,7 @@ def atender_cita(cita_id):
         medicamentos_seleccionados = request.form.getlist('medicamentos[]')
         indicaciones = request.form.getlist('indicaciones[]')
         duraciones = request.form.getlist('duraciones[]')
+        cantidad = request.form.getlist('cantidad[]')
 
         if not (medicamentos_seleccionados and indicaciones and duraciones) or \
            not (len(medicamentos_seleccionados) == len(indicaciones) == len(duraciones)):
@@ -505,13 +506,15 @@ def atender_cita(cita_id):
             indicacion = indicaciones[i].strip()
             duracion_dias = int(duraciones[i])
             fecha_tratamiento_fin = datetime.utcnow() + timedelta(days=duracion_dias)
+            cantidad_medicamento = int(cantidad[i]) if cantidad[i].isdigit() else 0
 
             # Guardar atención médica
             atencion = AtencionCita(
                 cita_id=cita.id,
                 medicamento_id=medicamento_id,
                 recomendacion=recomendacion,
-                indicacion=indicacion
+                indicacion=indicacion,
+                cantidad_recetada=cantidad_medicamento,
             )
             db.session.add(atencion)
 
@@ -520,6 +523,7 @@ def atender_cita(cita_id):
                 paciente_id=cita.paciente_id,
                 medicamento_id=medicamento_id,
                 indicacion=indicacion,
+                cantidad=cantidad_medicamento,
                 fecha_tratamiento_fin=fecha_tratamiento_fin,
                 fecha_registro=datetime.utcnow()
             )
@@ -912,7 +916,19 @@ def paciente_required(f):
 @paciente_required
 def portal_paciente():
     paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
-    return render_template('usuario_dasword.html' ,paciente=paciente)
+    totalcitas = Cita.query.filter_by(paciente_id=paciente.id,estado='Programada').count()
+    totalcitas_atendidas = Cita.query.filter_by(paciente_id=paciente.id,estado='Atendida').count()
+    totalmedicamentos = RegistroRetiroMedicamento.query.count()
+    todas_citas = Cita.query.filter_by(paciente_id=paciente.id).all()
+    # Obtener citas programadas como recordatorio para el paciente
+    citas = Cita.query.filter(
+    Cita.paciente_id == paciente.id,
+    Cita.estado == 'Programada',
+    Cita.fecha.between(datetime.now(), datetime.now() + timedelta(days=10))
+   ).all()
+   
+    
+    return render_template('usuario_dasword.html' ,paciente=paciente ,totalcitas=totalcitas,totalmedicamentos=totalmedicamentos,totalcitas_atendidas=totalcitas_atendidas,citas=citas,todas_citas=todas_citas)
 
 
 @app.route('/portal_paciente/inicio')
@@ -1079,10 +1095,23 @@ def verificar_citas():
         print(f"🚨 Error en la verificación de citas: {str(e)}")
         return jsonify({'success': False, 'message': 'Error en la verificación de citas', 'error': str(e)}), 500
 
+@app.route('/paciente/citas', methods=['GET'])
+@paciente_required
+def ver_citas_paciente():
+    paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+    if not paciente:
+        flash('No se encontró un paciente asociado a su cuenta.')
+        return redirect(url_for('login_usuarios'))
+    
+    # Filtrar solo las citas programadas
+    citas_programadas = Cita.query.filter_by(paciente_id=paciente.id, estado='Programada').all()
+    
+    return render_template('ver_citaspacientes.html', paciente=paciente, citas=citas_programadas)
 
 @app.route('/api/citas_paciente')
 @paciente_required
 def citas_paciente():
+    
     print("======= INICIO DE API CITAS_PACIENTE =======")
     print("IP de solicitud:", request.remote_addr)
     
@@ -1112,7 +1141,7 @@ def citas_paciente():
         print(f"Paciente encontrado ID: {paciente.id}, Nombre: {paciente.nombre if hasattr(paciente, 'nombre') else 'N/A'}")
         
         # Buscar citas asociadas al paciente
-        citas = Cita.query.filter_by(paciente_id=paciente.id).order_by(Cita.fecha, Cita.hora).all()
+        citas = Cita.query.filter_by(paciente_id=paciente.id, estado='Programada').order_by(Cita.fecha, Cita.hora).all()
         print(f"Cantidad de citas encontradas: {len(citas)}")
         
         # Convertir citas a formato JSON
@@ -1160,8 +1189,12 @@ def citas_paciente():
             print(f"Cita formateada: {json.dumps(cita_dict)}")
             citas_json.append(cita_dict)
         
-        # Renderizar la plantilla con las citas
-        return render_template('ver_citaspacientes.html', citas=citas_json, paciente=paciente)
+        # Devolver JSON en lugar de renderizar una plantilla
+        return jsonify({
+            'success': True,
+            'message': 'Citas obtenidas exitosamente',
+            'citas': citas_json
+        })
     
     except Exception as e:
         print(f"EXCEPCIÓN INESPERADA: {str(e)}")
@@ -1171,7 +1204,8 @@ def citas_paciente():
             'success': False, 
             'message': f'Error interno: {str(e)}', 
             'citas': []
-        })
+        }), 500
+        
         
 @app.route('/api/cancelar_cita/<int:cita_id>', methods=['DELETE'])
 @paciente_required
@@ -1196,6 +1230,82 @@ def cancelar_cita(cita_id):
         return jsonify({'success': False, 'message': f'Error interno: {str(e)}'}), 500
 
 
+@app.route('/api/hitorial_cita')
+@paciente_required
+def historial_cita():
+    paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+    if not paciente:
+        flash('No se encontró un paciente asociado a su cuenta.')
+        return redirect(url_for('login_usuarios'))
+    
+    citas = Cita.query.filter_by(paciente_id=paciente.id, estado='Atendida').all()
+    
+    # Convertir las citas a formato JSON para enviarlas al frontend
+    citas_json = []
+    for i, cita in enumerate(citas):
+        print(f"\nProcesando cita #{i+1}, ID: {cita.id}")
+        
+        # Formatear la hora correctamente según el tipo de dato
+        hora_str = None
+        print(f"Tipo de dato de hora: {type(cita.hora).__name__}")
+        
+        try:
+            if isinstance(cita.hora, timedelta):
+                hora_str = (datetime.min + cita.hora).time().strftime('%H:%M')
+            elif hasattr(cita.hora, 'strftime'):
+                hora_str = cita.hora.strftime('%H:%M')
+            else:
+                hora_str = str(cita.hora)
+            
+            print(f"Hora formateada: {hora_str}")
+        except Exception as e:
+            print(f"ERROR al formatear hora: {str(e)}")
+            hora_str = "Error: " + str(e)
+        
+        try:
+            fecha_str = cita.fecha.strftime('%Y-%m-%d')
+            print(f"Fecha formateada: {fecha_str}")
+        except Exception as e:
+            print(f"ERROR al formatear fecha: {str(e)}")
+            fecha_str = "Error: " + str(e)
+        
+        cita_dict = {
+            'id': cita.id,
+            'paciente_id': cita.paciente_id,
+            'tipo_servicio': getattr(cita, 'tipo_servicio', 'No especificado'),
+            'especialidad': getattr(cita, 'especialidad', None),
+            'tipo_examen': getattr(cita, 'tipo_examen', None),
+            'motivo': getattr(cita, 'motivo', None),
+            'fecha': fecha_str,
+            'hora': hora_str,
+            'codigo_confirmacion': getattr(cita, 'codigo_confirmacion', None),
+            'estado': getattr(cita, 'estado', 'Desconocido')
+        }
+        
+        print(f"Cita formateada: {json.dumps(cita_dict)}")
+        citas_json.append(cita_dict)
+    
+    # Devolver JSON en lugar de renderizar una plantilla
+    return jsonify({
+        'success': True,
+        'message': 'Citas obtenidas exitosamente',
+        'citas': citas_json
+    })
+
+@app.route('/historial_cita')
+@paciente_required
+def historial_cita_view():
+    paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+    if not paciente:
+        flash('No se encontró un paciente asociado a su cuenta.')
+        return redirect(url_for('login_usuarios'))
+    
+    citas = Cita.query.filter_by(paciente_id=paciente.id, estado='Atendida').all()
+    
+    
+    return render_template('citas_historial.html', titulo="Historial de Citas", seccion_activa="citas" , citas=citas ,paciente=paciente)
+
+
 @app.route('/mis-medicamentos')
 def mis_medicamentos_view():
     # Consultar al paciente asociado al usuario actual
@@ -1206,80 +1316,89 @@ def mis_medicamentos_view():
         return redirect(url_for('login_usuarios'))
     
     # Consultar al usuario que atendió la cita
+    retiros = RegistroRetiroMedicamento.query.filter_by(paciente_id=paciente.id).all()
     usuario = Usuario.query.filter_by(id=current_user.id).first()
 
     if not usuario:
         flash("No se encontró información del usuario que atendió la cita.", "warning")
     
-    return render_template('ver_medicamento_paciente.html', titulo="Mis Medicamentos", seccion_activa="medicamentos",
+    return render_template('medicamentos.html', titulo="Mis Medicamentos", seccion_activa="medicamentos",
         paciente=paciente,
-        usuario=usuario
+        usuario=usuario,
+        retiros=retiros
     )
 
 @app.route('/api/medicamentos_recetados')
 def medicamentos_recetados():
-    print("======= INICIO DE API MEDICAMENTOS_RECETADOS =======")
+    print("\n======= INICIO DE API MEDICAMENTOS_RECETADOS =======")
     
     if not current_user.is_authenticated:
+        print("Error: Usuario no autenticado")
         return jsonify({'success': False, 'message': 'Usuario no autenticado.', 'medicamentos_recetados': []})
     
+    print(f"Usuario autenticado: ID={current_user.id}")
+    
     try:
+        print("Buscando paciente asociado al usuario...")
         paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
+        
         if not paciente:
+            print(f"Error: No se encontró paciente para el usuario_id={current_user.id}")
             return jsonify({'success': False, 'message': 'Paciente no encontrado.', 'medicamentos_recetados': []})
         
-        citas = HistorialCita.query.filter_by(paciente_id=paciente.id).all()
-        cita_info = {cita.id: cita.tipo_servicio for cita in citas}  # Obtener tipo de cita
-        cita_ids = list(cita_info.keys())
-        atenciones = AtencionCita.query.filter(AtencionCita.cita_id.in_(cita_ids)).all()
+        # Corregido: Usamos solo el ID del paciente en el log, sin acceder a "nombre"
+        print(f"Paciente encontrado: ID={paciente.id}")
+        
+        print(f"Buscando registros de retiro de medicamentos para paciente_id={paciente.id}...")
+        retiros = RegistroRetiroMedicamento.query.filter_by(paciente_id=paciente.id).all()
+        print(f"Registros de retiro encontrados: {len(retiros)}")
+        
         
         medicamentos_recetados = []
         
-        for atencion in atenciones:
-            medicamento = db.session.get(Medicamento, atencion.medicamento_id)
+        for idx, retiro in enumerate(retiros):
+            print(f"\nProcesando retiro #{idx+1}: ID={retiro.id}, medicamento_id={retiro.medicamento_id}")
+            
+            medicamento = Medicamento.query.get(retiro.medicamento_id)
             if not medicamento:
+                print(f"  Error: No se encontró medicamento con ID={retiro.medicamento_id}")
                 continue
             
+            print(f"  Medicamento encontrado: {medicamento.nombre}")
             stock = medicamento.stock if medicamento.stock is not None else 0
             disponible = stock > 0
+            print(f"  Stock: {stock}, Disponible: {disponible}")
             
-            medicamentos_recetados.append({
+            # Verificar otros campos importantes
+            
+            medicamento_data = {
                 'medicamento_id': medicamento.id,
                 'nombre': medicamento.nombre,
                 'descripcion': medicamento.descripcion,
-                'indicacion': atencion.indicacion,
-                'recomendacion': atencion.recomendacion,
-                'fecha_atencion': atencion.fecha_atencion.strftime('%Y-%m-%d'),
-                'tipo_cita': cita_info.get(atencion.cita_id, 'No especificado'),
-                'especialidad': getattr(atencion, 'especialidad', 'No especificado'),
+                'cantidad': retiro.cantidad,
+                'indicacion': retiro.indicacion,
+                'fecha_registro': retiro.fecha_registro.strftime('%Y-%m-%d') if hasattr(retiro, 'fecha_registro') and retiro.fecha_registro else None,
+                'fecha_tratamiento_fin': retiro.fecha_tratamiento_fin.strftime('%Y-%m-%d') if hasattr(retiro, 'fecha_tratamiento_fin') and retiro.fecha_tratamiento_fin else None,
                 'disponible': disponible,
                 'stock': stock
-            })
+            }
+            
+            medicamentos_recetados.append(medicamento_data)
+            print(f"  Datos añadidos al resultado: {medicamento_data}")
         
-        # Opción alternativa: agrupar medicamentos en el servidor
-        # (descomentar si prefieres hacer el agrupamiento en el backend)
-        '''
-        medicamentos_agrupados = {}
-        for med in medicamentos_recetados:
-            clave = f"{med['nombre']}-{med['indicacion']}"
-            if clave not in medicamentos_agrupados:
-                medicamentos_agrupados[clave] = {
-                    **med,
-                    'cantidad': 1
-                }
-            else:
-                medicamentos_agrupados[clave]['cantidad'] += 1
-                medicamentos_agrupados[clave]['stock'] += med['stock']
-        
-        medicamentos_recetados = list(medicamentos_agrupados.values())
-        '''
+        print(f"\nTotal de medicamentos procesados: {len(medicamentos_recetados)}")
+        print("======= FIN DE API MEDICAMENTOS_RECETADOS =======\n")
         
         return jsonify({'success': True, 'medicamentos_recetados': medicamentos_recetados})
     
     except Exception as e:
+        print("ERROR DETECTADO:")
         import traceback
         traceback.print_exc()
-        return jsonify({'success': False, 'message': 'Error interno.', 'medicamentos_recetados': []})
+        print("======= FIN DE API MEDICAMENTOS_RECETADOS (CON ERROR) =======\n")
+        return jsonify({'success': False, 'message': f'Error interno: {str(e)}', 'medicamentos_recetados': []})
+    
+    
     
 @app.route('/api/retirar_medicamento', methods=['POST'])
 def retirar_medicamento():
