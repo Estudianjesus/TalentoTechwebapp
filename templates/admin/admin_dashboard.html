@@ -209,39 +209,19 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a href="{{ url_for('admin_farmacia') }}" class="nav-link" {% if request.endpoint == 'admin_farmacia' %}active{% endif %}>
                 <i class="fas fa-pills"></i>
                 <span>Gestión de Farmacia</span>
               </a>
             </li>
+           
             <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="fas fa-headset"></i>
-                <span>Entrega de Medicamentos</span>
+              <a href="{{ url_for('admin_slides') }}" class="nav-link {% if request.endpoint == 'citas_admi' %}active{% endif %}">
+              <i class="fas fa-images"></i>
+              <span>Crear Slider</span>
               </a>
             </li>
-          </ul>
 
-          <div class="sidebar-header">Administración</div>
-          <ul class="sidebar-menu nav flex-column">
-            <li class="nav-item">
-              <a href="#serviciosAdmin" class="nav-link" data-bs-toggle="collapse">
-                <i class="fas fa-users"></i>
-                <span>Usuarios</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="fas fa-cog"></i>
-                <span>Configuración</span>
-              </a>
-            </li>
-            <li class="nav-item d-lg-none">
-              <a href="#" class="nav-link text-danger" id="closeSidebar">
-                <i class="fas fa-times"></i>
-                <span>Cerrar menú</span>
-              </a>
-            </li>
           </ul>
         </div>
 

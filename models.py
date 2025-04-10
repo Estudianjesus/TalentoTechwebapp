@@ -259,5 +259,25 @@ class RecetaMedica(db.Model):
     indicaciones = db.Column(db.Text, nullable=False)
     fecha_prescripcion = db.Column(db.DateTime, default=datetime.utcnow)
     
-
+class Slide(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(200), nullable=False)
+    descripcion = db.Column(db.Text, nullable=False)
+    imagen = db.Column(db.String(200))  # Ruta a la imagen
+    url_boton = db.Column(db.String(200))  # URL para el botón "Ver más"
+    texto_boton = db.Column(db.String(50), default="VER RECOMENDACIONES")
+    activo = db.Column(db.Boolean, default=True)
+    orden = db.Column(db.Integer, default=0)  # Para ordenar los slides
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+def __repr__(self):
+    return f'<Slide {self.titulo}>'
+    
+class contacto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    numero_documento = db.Column(db.String(20), nullable=False)
+    correo = db.Column(db.String(100), nullable=False)
+    tipo_solicitud = db.Column(db.Enum('PQR', 'Autorización', 'otro'), nullable=False)
+    mensaje = db.Column(db.Text, nullable=False)
+    fecha_envio = db.Column(db.DateTime, default=datetime.utcnow)
 

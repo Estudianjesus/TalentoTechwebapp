@@ -130,29 +130,42 @@
             </div>
         </div>
     </div>
-
+    {% if request.path == '/contacto' %}
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="container mt-4">
+                    {% for message in messages %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
     <!-- Contact Form Section -->
     <div class="container mb-5">
         <div class="row">
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <div class="custom-form">
                     <h2 class="h3 mb-4">Envíanos un mensaje</h2>
-                    <form>
+                    <form action="/contacto" method="POST">
                         <div class="mb-3">
                             <label for="name" class="form-label">Nombre completo</label>
-                            <input type="text" class="form-control" id="name" required>
+                            <input type="text" class="form-control" id="name" name="nombre" required>
                         </div>
                         <div class="mb-3">
                             <label for="document" class="form-label">Número de documento</label>
-                            <input type="text" class="form-control" id="document" required>
+                            <input type="text" class="form-control" id="document" name="document" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Correo electrónico</label>
-                            <input type="email" class="form-control" id="email" required>
+                            <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="mb-3">
                             <label for="type" class="form-label">Tipo de solicitud</label>
-                            <select class="form-select" id="type" required>
+                            <select class="form-select" id="type" name="type" required>
                                 <option value="">Seleccione una opción</option>
                                 <option value="cita">Solicitud de cita</option>
                                 <option value="pqr">PQR</option>
@@ -162,10 +175,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="message" class="form-label">Mensaje</label>
-                            <textarea class="form-control" id="message" rows="4" required></textarea>
+                            <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Enviar mensaje</button>
                     </form>
+                    
                 </div>
             </div>
             <div class="col-lg-6">

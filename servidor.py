@@ -12,7 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
 from database import db
-from models import AtencionCita, Cita, HistorialCita, Medicamento, RegistroRetiroMedicamento, solicitudes_afiliacion, Usuario, Paciente
+from models import AtencionCita, Cita, HistorialCita, Medicamento, RegistroRetiroMedicamento, Slide, contacto, solicitudes_afiliacion, Usuario, Paciente
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -114,6 +114,10 @@ def login_admin():
 def home():
     return render_template('index.html')
 
+
+
+    
+
 # Ruta Administradores
 @app.route('/admin')
 @login_required 
@@ -127,7 +131,153 @@ def admin():
     total_medicamento = Medicamento.query.count()
     return render_template('admin/admin_dashboard.html', usuario=current_user,total_afiliado=total_afiliado,total_cita=total_cita,total_solicitude=total_solicitude,total_medicamento=total_medicamento)
 
+@app.route('/admin/farmacia', methods=['GET'])
+@login_required
+def admin_farmacia():
+    if current_user.rol not in ['Administrador', 'Subadministrador', 'Farmacia']:
+        return redirect(url_for('login_admin'))
+    
+    medicame = Medicamento.query.all()
+    
+    return render_template('admin/gestio_farmaci.html', usuario=current_user,medicame=medicame)
 
+@app.route('/admin/slides', methods=['GET'])
+def admin_slides():
+    slides = Slide.query.order_by(Slide.orden).all()
+    return render_template('admin/slides/listar_slaider.html', slides=slides)
+
+@app.route('/admin/slides/crear', methods=['GET', 'POST'])
+def crear_slide():
+    if request.method == 'POST':
+        titulo = request.form['titulo']
+        descripcion = request.form['descripcion']
+        url_boton = request.form['url_boton']
+        texto_boton = request.form['texto_boton'] or "VER RECOMENDACIONES"
+        activo = 'activo' in request.form
+        orden = request.form['orden']
+        
+        # Manejar la subida de la imagen
+        imagen_file = request.files.get('imagen')
+        imagen_path = None
+        
+        if imagen_file and imagen_file.filename:
+            filename = secure_filename(imagen_file.filename)
+            # Generar nombre único con timestamp
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            filename = f"{timestamp}_{filename}"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            imagen_file.save(filepath)
+            imagen_path = f"uploads/{filename}"
+        
+        nuevo_slide = Slide(
+            titulo=titulo,
+            descripcion=descripcion,
+            imagen=imagen_path,
+            url_boton=url_boton,
+            texto_boton=texto_boton,
+            activo=activo,
+            orden=orden
+        )
+        
+        try:
+            db.session.add(nuevo_slide)
+            db.session.commit()
+            flash('Slide creado exitosamente', 'success')
+            return redirect(url_for('admin_slides'))
+        except Exception as e:
+            flash(f'Error al crear el slide: {str(e)}', 'danger')
+            
+    return render_template('admin/slides/crear_slaider.html')
+
+@app.route('/admin/slides/editar/<int:id>', methods=['GET', 'POST'])
+def editar_slide(id):
+    slide = Slide.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        slide.titulo = request.form['titulo']
+        slide.descripcion = request.form['descripcion']
+        slide.url_boton = request.form['url_boton']
+        slide.texto_boton = request.form['texto_boton'] or "VER RECOMENDACIONES"
+        slide.activo = 'activo' in request.form
+        slide.orden = request.form['orden']
+        
+        # Manejar la subida de la imagen
+        imagen_file = request.files.get('imagen')
+        
+        if imagen_file and imagen_file.filename:
+            # Eliminar imagen anterior si existe
+            if slide.imagen:
+                try:
+                    old_path = os.path.join(app.root_path, 'static', slide.imagen)
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
+                except Exception as e:
+                    flash(f'Error al eliminar imagen anterior: {str(e)}', 'warning')
+            
+            filename = secure_filename(imagen_file.filename)
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            filename = f"{timestamp}_{filename}"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            imagen_file.save(filepath)
+            slide.imagen = f"uploads/{filename}"
+        
+        try:
+            db.session.commit()
+            flash('Slide actualizado exitosamente', 'success')
+            return redirect(url_for('admin_slides'))
+        except Exception as e:
+            flash(f'Error al actualizar el slide: {str(e)}', 'danger')
+            
+    return render_template('admin/slides/editar_slaider.html', slide=slide)
+
+@app.route('/admin/slides/eliminar/<int:id>')
+def eliminar_slide(id):
+    slide = Slide.query.get_or_404(id)
+    
+    # Eliminar la imagen asociada
+    if slide.imagen:
+        try:
+            image_path = os.path.join(app.root_path, 'static', slide.imagen)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        except Exception as e:
+            flash(f'Error al eliminar la imagen: {str(e)}', 'warning')
+    
+    try:
+        db.session.delete(slide)
+        db.session.commit()
+        flash('Slide eliminado exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar el slide: {str(e)}', 'danger')
+        
+    return redirect(url_for('admin_slides'))
+
+@app.route('/admin/slides/cambiar-orden', methods=['POST'])
+def cambiar_orden_slides():
+    # Esta ruta recibiría datos AJAX para cambiar el orden de los slides
+    if request.method == 'POST':
+        slide_ids = request.form.getlist('slide_ids[]')
+        
+        for i, slide_id in enumerate(slide_ids):
+            slide = Slide.query.get(int(slide_id))
+            if slide:
+                slide.orden = i
+        
+        try:
+            db.session.commit()
+            return {'status': 'success'}
+        except:
+            db.session.rollback()
+            return {'status': 'error'}, 500
+    
+    return {'status': 'error', 'message': 'Método no permitido'}, 405
+
+
+
+# Ruta para la página de recomendaciones COVID-19
+@app.route('/covid-recomendaciones')
+def covid_recomendaciones():
+    return render_template('public/covid_recomendaciones.html')
 
 
 @app.route('/admin/perfil', methods=['GET'])
@@ -769,9 +919,30 @@ def eliminar_medicamento(id):
 def consulta_general():
     return render_template('consulta_general.html')
 
-@app.route('/contacto')
-def contacto():
+@app.route('/contacto', methods=['GET', 'POST'])
+def Contacto():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        numero_documento = request.form['document']
+        correo = request.form['email']
+        tipo_solicitud = request.form['type']
+        mensaje = request.form['message']
+
+        nuevo_contacto = contacto(
+            nombre=nombre,
+            numero_documento=numero_documento,
+            correo=correo,
+            tipo_solicitud=tipo_solicitud,
+            mensaje=mensaje
+        )
+
+        db.session.add(nuevo_contacto)
+        db.session.commit()
+
+        flash('Tu mensaje ha sido enviado exitosamente. ¡Gracias por contactarnos!', 'success')
+
     return render_template('contacto.html')
+
 
 @app.route('/farmacia')
 def farmacia():
@@ -926,9 +1097,15 @@ def portal_paciente():
     Cita.estado == 'Programada',
     Cita.fecha.between(datetime.now(), datetime.now() + timedelta(days=10))
    ).all()
-   
     
-    return render_template('usuario_dasword.html' ,paciente=paciente ,totalcitas=totalcitas,totalmedicamentos=totalmedicamentos,totalcitas_atendidas=totalcitas_atendidas,citas=citas,todas_citas=todas_citas)
+    # Obtener los slides activos y ordenados para mostrar en el slider
+    slides = Slide.query.filter_by(activo=True).order_by(Slide.orden).all()
+    
+    return render_template('usuario_dasword.html' ,paciente=paciente ,totalcitas=totalcitas,
+                           totalmedicamentos=totalmedicamentos,
+                           totalcitas_atendidas=totalcitas_atendidas,
+                           citas=citas,todas_citas=todas_citas,
+                           slides=slides)
 
 
 @app.route('/portal_paciente/inicio')
