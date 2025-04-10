@@ -129,7 +129,9 @@ def admin():
     total_cita = Cita.query.filter_by(estado='Programada').count()
     total_solicitude = solicitudes_afiliacion.query.count()
     total_medicamento = Medicamento.query.count()
-    return render_template('admin/admin_dashboard.html', usuario=current_user,total_afiliado=total_afiliado,total_cita=total_cita,total_solicitude=total_solicitude,total_medicamento=total_medicamento)
+    
+    solicitudes_pendientes = solicitudes_afiliacion.query.filter_by(estado='Pendiente').limit(5).all()
+    return render_template('admin/admin_dashboard.html', usuario=current_user,total_afiliado=total_afiliado,total_cita=total_cita,total_solicitude=total_solicitude,total_medicamento=total_medicamento,solicitudes_pendientes=solicitudes_pendientes)
 
 @app.route('/admin/farmacia', methods=['GET'])
 @login_required
@@ -142,9 +144,13 @@ def admin_farmacia():
     return render_template('admin/gestio_farmaci.html', usuario=current_user,medicame=medicame)
 
 @app.route('/admin/slides', methods=['GET'])
+@login_required
 def admin_slides():
+    if current_user.rol not in ['Administrador', 'Subadministrador', 'Farmacia']:
+        return redirect(url_for('login_admin'))
+    
     slides = Slide.query.order_by(Slide.orden).all()
-    return render_template('admin/slides/listar_slaider.html', slides=slides)
+    return render_template('admin/slides/listar_slaider.html', slides=slides,usuario=current_user)
 
 @app.route('/admin/slides/crear', methods=['GET', 'POST'])
 def crear_slide():

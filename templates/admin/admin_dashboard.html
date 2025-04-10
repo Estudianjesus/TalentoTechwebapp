@@ -176,9 +176,11 @@
 
           <!-- Profile Section -->
           <div class="profile-section">
-            <img src="/EPS/img/farme.avif" alt="Foto de perfil" class="profile-img mb-3" />
-            <div id="perfilnombre" class="fw-bold fs-5">Miguel S.</div>
-            <p class="text-muted small mb-0">Administrador General</p>
+            <div class="profile-card" style="background-color: rgba(255, 255, 255, 0.25); color: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+              <div id="perfilnombre" class="fw-bold h-2 mb-3"> Nombres: {{current_user.primer_nombre}} {{current_user.primer_apellido}}</div>
+              <div class="mb-1"> {{current_user.tipo_documento}} {{current_user.numero_documento}}</div>
+              <div>{{current_user.correo}}</div>
+            </div>
           </div>
 
           <!-- Menu -->
@@ -216,7 +218,7 @@
             </li>
            
             <li class="nav-item">
-              <a href="{{ url_for('admin_slides') }}" class="nav-link {% if request.endpoint == 'citas_admi' %}active{% endif %}">
+              <a href="{{ url_for('admin_slides') }}" class="nav-link {% if request.endpoint == 'admin_slides' %}active{% endif %}">
               <i class="fas fa-images"></i>
               <span>Crear Slider</span>
               </a>
@@ -323,25 +325,69 @@
                 <!-- Charts Section -->
 
                 <!-- Recent Activity Section -->
-                <div class="row mb-4">
-                  <div class="col-lg-12">
-                    <div class="card shadow-sm">
-                      <div class="card-header bg-white">
-                        <h5 class="card-title mb-0">Actividad Reciente</h5>
-                      </div>
-                      <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                          {% for activity in recent_activities %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                              <span>{{ activity.description }}</span>
-                              <small class="text-muted">{{ activity.timestamp }}</small>
-                            </li>
+               
+                <div class="card shadow-sm mb-4 w-70">
+                  <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Solicitudes Pendientes</h5>
+                  </div>
+                  <div class="card-body">
+                    {% if solicitudes_pendientes %}
+                    <div class="table-responsive">
+                      <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Nombre</th>
+                            <th>Documento</th>
+                            <th>Zona</th>
+                            <th>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for solicitud in solicitudes_pendientes %}
+                          <tr id="solicitud-{{ solicitud.id }}">
+                            <td>{{ solicitud.primer_nombre }} {{ solicitud.primer_apellido }}</td>
+                            <td>{{ solicitud.tipo_documento }} {{ solicitud.numero_documento }}</td>
+                            <td>{{ solicitud.zona }}</td>
+                            <td><span class="badge bg-warning text-dark">{{ solicitud.estado }}</span></td>
+                          </tr>
                           {% endfor %}
-                        </ul>
-                      </div>
+                          <tr>
+                            <td colspan="4">
+                              <a href="{{ url_for('ver_solicitudes') }}" class="btn btn-sm btn-outline-primary">Ver todas las solicitudes</a>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
+                    {% else %}
+                    <p class="text-muted">No hay solicitudes pendientes.</p>
+                    {% endif %}
                   </div>
                 </div>
+                
+
+                </div>
+                <!-- End of Recent Activity Section -->
+
+                <!-- Footer -->
+
+                <div class="card shadow-sm mb-4">
+                  <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Información de Contacto</h5>
+                  </div>
+                  <div class="card-body">
+                    <p>EPS - Todos los derechos reservados.</p>
+                  </div>
+
+                  <div class="card-footer bg-white">
+                    <p>Desarrollado por: EPS</p>
+                  </div>
+
+                </div>
+                <!-- End of Footer -->
+
+                </div>
+                
               {% endblock %}
             </div>
           </main>
