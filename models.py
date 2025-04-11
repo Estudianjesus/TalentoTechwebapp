@@ -22,6 +22,7 @@ class Usuario(db.Model, UserMixin):
     rol = db.Column(db.Enum('Administrador', 'Subadministrador', 'Farmacia', 'paciente'), nullable=False)
     activo = db.Column(db.Boolean, default=False)
     afiliado = db.Column(db.Boolean, default=False)
+    debe_cambiar_clave = db.Column(db.Boolean, default=False)
   
 
 def __init__(self, primer_nombre=None, segundo_nombre=None, primer_apellido=None, segundo_apellido=None, 

@@ -5,440 +5,570 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso EPS - Sistema de Salud</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/icons/apple-touch-icon.png') }}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/icons/favicon-32x32.png') }}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/icons/favicon-16x16.png') }}" />
+    <link rel="manifest" href="{{ url_for('static', filename='img/icons/site.webmanifest') }}" />
     
     <style>
-            body {
-                font-family: 'Nunito', 'Arial', sans-serif;
-                margin: 0;
-                padding: 0;
-                background-color: #f5f5f5;
-                color: #333;
-                line-height: 1.6;
-                x-scroll:none;
+        body {
+            font-family: 'Nunito', 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+            overflow-x: hidden !important;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .breadcrumb {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            list-style: none;
+        }
+        
+        .breadcrumb-item a {
+            color: rgb(3, 127, 210);
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: #555;
+        }
+        
+        .left-section {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .left-section img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        .right-section {
+            flex: 0 0 450px;
+            background-color: #fff;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 50px 40px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo-container i {
+            font-size: 42px;
+            color: rgb(4, 136, 224);
+            margin-bottom: 15px;
+            background: -webkit-linear-gradient(45deg, #0071bc, #00aec7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .form-title {
+            background: -webkit-linear-gradient(45deg, #0071bc, #00aec7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+        
+        .form-subtitle {
+            color: #777;
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            color: #888;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active {
+            background: linear-gradient(45deg, #0071bc, #00aec7);
+            color: white;
+        }
+        
+        .step-line {
+            width: 80px;
+            height: 3px;
+            background-color: #f0f0f0;
+            margin: 0 5px;
+            position: relative;
+        }
+        
+        .step.active + .step-line {
+            background: linear-gradient(to right, #0071bc, #f0f0f0);
+        }
+        
+        .form-step {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .form-step.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+            font-size: 15px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #0071bc;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 113, 188, 0.15);
+            background-color: #fff;
+        }
+        
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 24px 24px;
+        }
+        
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        
+        .was-validated .form-control:invalid ~ .invalid-feedback,
+        .form-control.is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23444' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #0071bc, #00aec7);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 113, 188, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #0062a3, #0099b0);
+            box-shadow: 0 6px 12px rgba(0, 113, 188, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #555;
+            margin-top: 12px;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #777;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .help-text a {
+            color: #0071bc;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        
+        .help-text a:hover {
+            color: #00aec7;
+            text-decoration: underline;
+        }
+        
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        
+        /* Responsive breakpoints */
+        @media (max-width: 1024px) {
+
+            body{
+                overflow-x: hidden;
             }
-            
-            .container {
-                display: flex;
-                min-height: 100vh;
-                position: relative;
-            }
-            
-            .breadcrumb {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                z-index: 10;
-                background-color: rgba(255, 255, 255, 0.8);
-                padding: 8px 15px;
-                border-radius: 6px;
-                font-size: 14px;
-                width:250px;
-                display:flex;
-                gap:20px;
-            }
-            
-            .breadcrumb-item a {
-                color:rgb(3, 127, 210);
-                text-decoration: none;
-            }
-            
-            .breadcrumb-item.active {
-                color: #555;
-            }
-            
-            .breadcrumb-item+.breadcrumb-item::before {
-                color: #6c757d;
-            }
-            
-            
-            
-            .left-section img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            
             .right-section {
-                flex: 0 0 450px;
-                background-color: #fff;
-                box-shadow: -5px 0 20px rgba(0, 0, 0, 0.08);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                padding: 50px 40px;
-                position: relative;
-                z-index: 1;
+                flex: 0 0 400px;
+                padding: 40px 30px;
             }
-            
-            .logo-container {
-                text-align: center;
-                margin-bottom: 40px;
-            }
-            
-            .logo-container i {
-                font-size: 42px;
-                color:rgb(4, 136, 224);
-                margin-bottom: 15px;
-                background: -webkit-linear-gradient(45deg, #0071bc, #00aec7);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
+        }
+        
+        @media (max-width: 850px) {
+            .right-section {
+                flex: 0 0 350px;
+                padding: 30px 25px;
             }
             
             .form-title {
-                background: -webkit-linear-gradient(45deg, #0071bc, #00aec7);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-size: 32px;
-                font-weight: 700;
-                margin: 0 0 10px 0;
-                text-align: center;
+                font-size: 28px;
             }
             
             .form-subtitle {
-                color: #777;
-                font-size: 15px;
-                text-align: center;
-                margin-bottom: 40px;
-            }
-            
-            .step-indicator {
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                font-size: 14px;
                 margin-bottom: 30px;
             }
-            
-            .step {
-                width: 34px;
-                height: 34px;
-                border-radius: 50%;
-                background-color: #f0f0f0;
-                color: #888;
-                font-size: 15px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 600;
-                position: relative;
-                z-index: 2;
+        }
+        
+        @media (max-width: 768px) {
+
+            body {
+                overflow-x: hidden;
+            }
+            .container {
+                flex-direction: column;
             }
             
-            .step.active {
-                background: linear-gradient(45deg, #0071bc, #00aec7);
-                color: white;
+            .breadcrumb {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin: 15px;
+                width: auto;
+            }
+            
+            .left-section {
+                height: 200px;
+                min-height: 200px;
+            }
+            
+            .left-section img {
+                height: 100%;
+            }
+            
+            .right-section {
+                flex: 1;
+                width: 100%;
+                max-width: none;
+                padding: 30px 20px;
+                box-shadow: none;
+            }
+            
+            .logo-container {
+                margin-bottom: 25px;
+            }
+            
+            .form-title {
+                font-size: 26px;
+            }
+            
+            .form-subtitle {
+                margin-bottom: 25px;
             }
             
             .step-line {
-                width: 80px;
-                height: 3px;
-                background-color: #f0f0f0;
-                margin: 0 5px;
-                position: relative;
+                width: 60px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body{
+                overflow-x: hidden;
+            }
+
+            .left-section {
+                height: 150px;
+                min-height: 150px;
             }
             
-            .step.active + .step-line {
-                background: linear-gradient(to right, #0071bc, #f0f0f0);
+            .logo-container i {
+                font-size: 36px;
             }
             
-            .form-step {
-                display: none;
-                opacity: 0;
-                transform: translateY(10px);
-                transition: opacity 0.3s, transform 0.3s;
+            .form-title {
+                font-size: 24px;
             }
             
-            .form-step.active {
-                display: block;
-                opacity: 1;
-                transform: translateY(0);
-            }
-            
-            .form-group {
-                margin-bottom: 24px;
+            .form-subtitle {
+                font-size: 13px;
             }
             
             .form-label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 600;
-                color: #444;
-                font-size: 15px;
+                font-size: 14px;
             }
             
             .form-control {
-                width: 100%;
-                padding: 12px 16px;
-                font-size: 15px;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-                background-color: #f9f9f9;
-                box-sizing: border-box;
-                transition: all 0.3s;
-            }
-            
-            .form-control:focus {
-                border-color: #0071bc;
-                outline: none;
-                box-shadow: 0 0 0 3px rgba(0, 113, 188, 0.15);
-                background-color: #fff;
-            }
-            
-            .form-control.is-invalid {
-                border-color: #dc3545;
-                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-                background-repeat: no-repeat;
-                background-position: right 12px center;
-                background-size: 24px 24px;
-            }
-            
-            .invalid-feedback {
-                display: none;
-                color: #dc3545;
-                font-size: 13px;
-                margin-top: 5px;
-            }
-            
-            .was-validated .form-control:invalid ~ .invalid-feedback,
-            .form-control.is-invalid ~ .invalid-feedback {
-                display: block;
-            }
-            
-            select.form-control {
-                appearance: none;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23444' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 12px center;
-                padding-right: 40px;
+                padding: 10px 14px;
+                font-size: 14px;
             }
             
             .btn {
-                width: 100%;
-                padding: 14px 15px;
-                font-size: 16px;
-                font-weight: 600;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.3s;
-                border: none;
+                padding: 12px;
+                font-size: 15px;
             }
             
-            .btn-primary {
-                background: linear-gradient(45deg, #0071bc, #00aec7);
-                color: white;
-                box-shadow: 0 4px 10px rgba(0, 113, 188, 0.2);
+            .step {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
             }
             
-            .btn-primary:hover {
-                background: linear-gradient(45deg, #0062a3, #0099b0);
-                box-shadow: 0 6px 12px rgba(0, 113, 188, 0.3);
-                transform: translateY(-1px);
-            }
-            
-            .btn-secondary {
-                background-color: #f0f0f0;
-                color: #555;
-                margin-top: 12px;
-            }
-            
-            .btn-secondary:hover {
-                background-color: #e0e0e0;
+            .step-line {
+                width: 50px;
             }
             
             .help-text {
-                font-size: 14px;
-                color: #777;
-                margin-top: 30px;
-                text-align: center;
+                font-size: 13px;
             }
-            
-            .help-text a {
-                color: #0071bc;
-                text-decoration: none;
-                font-weight: 600;
-                transition: color 0.2s;
-            }
-            
-            .help-text a:hover {
-                color: #00aec7;
-                text-decoration: underline;
-            }
-            
-            input::-webkit-outer-spin-button,
-            input::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
-            
-            input[type=number] {
-                -moz-appearance: textfield;
-            }
-            
-            @media (max-width: 992px) {
-                .right-section {
-                    flex: 0 0 400px;
-                    padding: 40px 30px;
-                }
-            }
-            
-            @media (max-width: 768px) {
-                .container {
-                    flex-direction: column;
-                }
-                
-                .left-section {
-                    display: none;
-                }
-                
-                .right-section {
-                    flex: 1;
-                    width: 100%;
-                    max-width: none;
-                    padding: 40px 20px;
-                }
-                
-                .breadcrumb {
-                    position: static;
-                    margin-bottom: 20px;
-                }
-            }
-
-            .breadcrumb {
-                list-style: none; 
-                counter-reset: none; 
-            }
-            
-            .breadcrumb-item {
-                list-style-type: none; 
-                counter-increment: none;
-            }
-        </style>
-    </head>        
-    <body>
-        <div class="container">
-            <nav aria-label="breadcrumb" class="new-overlay-text " >
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Inicio</a></li>/
-                    <li class="breadcrumb-item active" aria-current="page">Portal paciente</li>
-                </ol>
-            </nav>
-            
-            <div class="left-section">
-                <img src="../static/img/nosotros.jpg" alt="Sistema de Salud">
+        }
+    </style>
+</head>        
+<body>
+    <div class="container">
+        <nav aria-label="breadcrumb" class="new-overlay-text">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Inicio</a></li>
+                <li>/</li>
+                <li class="breadcrumb-item active" aria-current="page">Portal paciente</li>
+            </ol>
+        </nav>
+        
+        <div class="left-section">
+            <img src="../static/img/nosotros.jpg" alt="Sistema de Salud">
+        </div>
+        
+        <div class="right-section">
+            <div class="logo-container">
+                <i class="fas fa-hospital-user"></i>
+                <h1 class="form-title">MediFlex</h1>
+                <p class="form-subtitle">Acceda a su cuenta para gestionar sus servicios de salud</p>
             </div>
             
-            <div class="right-section">
-                <div class="logo-container">
-                    <i class="fas fa-hospital-user"></i>
-                    <h1 class="form-title">MediFlex</h1>
-                    <p class="form-subtitle">Acceda a su cuenta para gestionar sus servicios de salud</p>
-                </div>
-                
-                <div class="step-indicator">
-                    <div class="step active">1</div>
-                    <div class="step-line"></div>
-                    <div class="step">2</div>
-                </div>
-                
-                <form id="login-form" class="needs-validation" novalidate  autocomplete="off">
-                    <div class="form-step active" id="step1">
-                        <div class="form-group">
-                            <label for="tipo_documento" class="form-label ">Tipo de documento de identidad</label>
-                            <select id="tipo_documento" class="form-control" required>
-                                <option value="" disabled selected>Seleccione una opción</option>
-                                <option value="CC">Cédula de Ciudadanía</option>
-                                <option value="TI">Tarjeta de Identidad</option>
-                                <option value="CE">Cédula de Extranjería</option>
-                                <option value="PP">Pasaporte</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Por favor seleccione un tipo de documento
-                            </div>
+            <div class="step-indicator">
+                <div class="step active">1</div>
+                <div class="step-line"></div>
+                <div class="step">2</div>
+            </div>
+            
+            <form id="login-form" class="needs-validation" novalidate autocomplete="off">
+                <div class="form-step active" id="step1">
+                    <div class="form-group">
+                        <label for="tipo_documento" class="form-label">Tipo de documento de identidad</label>
+                        <select id="tipo_documento" class="form-control" required>
+                            <option value="" disabled selected>Seleccione una opción</option>
+                            <option value="CC">Cédula de Ciudadanía</option>
+                            <option value="TI">Tarjeta de Identidad</option>
+                            <option value="CE">Cédula de Extranjería</option>
+                            <option value="PP">Pasaporte</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor seleccione un tipo de documento
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="numero_documento" class="form-label">Número de documento</label>
-                            <input type="number" id="numero_documento" class="form-control" placeholder="Ingrese su número de documento" id="validationCustom01" required>
-                            <div class="invalid-feedback">
-                                Por favor ingrese su número de documento
-                            </div>
-                        </div>
-                        
-                        <button type="button" id="nextButton" class="btn btn-primary">
-                            <i class="fas fa-arrow-right mr-2"></i> Continuar
-                        </button>
                     </div>
                     
-                    <!-- Paso 2: Contraseña -->
-                    <div class="form-step" id="step2" class="needs-validation" novalidate autocomplete="off" >
-                        <div class="form-group">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" id="password" class="form-control" placeholder="Ingrese su contraseña" required autocomplete="off">
-                            <div class="invalid-feedback">
-                                Por favor ingrese su contraseña
-                            </div>
+                    <div class="form-group">
+                        <label for="numero_documento" class="form-label">Número de documento</label>
+                        <input type="number" id="numero_documento" class="form-control" placeholder="Ingrese su número de documento" required>
+                        <div class="invalid-feedback">
+                            Por favor ingrese su número de documento
                         </div>
-                        
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt mr-2"></i> Iniciar sesión
-                        </button>
-                        <button type="button" id="backButton" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left mr-2"></i> Volver
-                        </button>
                     </div>
-                </form>
+                    
+                    <button type="button" id="nextButton" class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> Continuar
+                    </button>
+                </div>
                 
-                <p class="help-text">
-                    ¿Olvidó su contraseña? <a href="#">Recuperar acceso</a>
-                </p>
-            </div>
+                <!-- Paso 2: Contraseña -->
+                <div class="form-step" id="step2">
+                    <div class="form-group">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" id="password" class="form-control" placeholder="Ingrese su contraseña" required autocomplete="off">
+                        <div class="invalid-feedback">
+                            Por favor ingrese su contraseña
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+                    </button>
+                    <button type="button" id="backButton" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </button>
+                </div>
+            </form>
+            
+            <p class="help-text">
+                ¿Olvidó su contraseña? <a href="#">Recuperar acceso</a>
+            </p>
         </div>
+    </div>
 
     <script>
         function limpiarCampos() {
             document.getElementById("login-form").reset();
         }
+        
         document.addEventListener('DOMContentLoaded', function() {
             const step1 = document.getElementById('step1');
             const step2 = document.getElementById('step2');
             const nextButton = document.getElementById('nextButton');
             const backButton = document.getElementById('backButton');
             const steps = document.querySelectorAll('.step');
-        
-            nextButton.addEventListener('click', function() {
+            
+            // Form validation
+            function validateStep1() {
                 const tipoDocumento = document.getElementById('tipo_documento');
                 const numeroDocumento = document.getElementById('numero_documento');
-        
-                if (tipoDocumento && numeroDocumento) {
+                let isValid = true;
+                
+                if (!tipoDocumento.value) {
+                    tipoDocumento.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    tipoDocumento.classList.remove('is-invalid');
+                }
+                
+                if (!numeroDocumento.value) {
+                    numeroDocumento.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    numeroDocumento.classList.remove('is-invalid');
+                }
+                
+                return isValid;
+            }
+            
+            nextButton.addEventListener('click', function() {
+                if (validateStep1()) {
                     step1.classList.remove('active');
                     step2.classList.add('active');
                     steps[0].classList.remove('active');
                     steps[1].classList.add('active');
-                } else {
-                    alert("Por favor ingrese todos los datos antes de continuar.");
                 }
             });
-        
+            
             backButton.addEventListener('click', function() {
                 step2.classList.remove('active');
                 step1.classList.add('active');
                 steps[1].classList.remove('active');
                 steps[0].classList.add('active');
             });
-        
+            
             document.getElementById('login-form').addEventListener('submit', function(e) {
                 e.preventDefault();
-        
+                
+                const password = document.getElementById("password");
+                let isValid = true;
+                
+                if (!password.value) {
+                    password.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    password.classList.remove('is-invalid');
+                }
+                
+                if (!isValid) return;
+                
                 const tipo_documento = document.getElementById("tipo_documento").value;
                 const numero_documento = document.getElementById("numero_documento").value;
-                const password = document.getElementById("password").value;
-        
+                
                 const data = {
                     tipo_documento: tipo_documento,
                     numero_documento: numero_documento,
-                    password: password
+                    password: password.value
                 };
-        
-                fetch('/login_usuarios', { // Reemplaza con la URL correcta
+                
+                fetch('/login_usuarios', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -447,16 +577,39 @@
                 })
                 .then(response => response.json())
                 .then(result => {
+                    console.log("Respuesta del servidor:", result);
+                    
                     if (result.status === "success") {
-                        window.location.href = result.redirect_url; // Redirigir al portal
+                        // Si el usuario debe cambiar la contraseña
+                        if (result.debe_cambiar_clave) {
+                            console.log("Usuario debe cambiar clave - Mostrando modal");
+                            
+                            // Redirigimos primero y luego mostraremos el modal
+                            window.location.href = result.redirect_url + "?cambiar_clave=true";
+                        } else {
+                            console.log("Redirigiendo a:", result.redirect_url);
+                            window.location.href = result.redirect_url;
+                        }
                     } else {
-                        alert(result.message); // Mostrar error en un alert (puedes cambiar esto por un mensaje en pantalla)
+                        alert(result.message); // Muestra el mensaje de error del servidor
                     }
                 })
-                .catch(error => console.error('Error en la autenticación:', error));
+                .catch(error => {
+                    console.error('Error en la autenticación:', error);
+                    alert('Ha ocurrido un error al intentar iniciar sesión. Por favor intente nuevamente.');
+                });
+            });
+            
+            // Remove validation styles when input changes
+            const formInputs = document.querySelectorAll('.form-control');
+            formInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value) {
+                        this.classList.remove('is-invalid');
+                    }
+                });
             });
         });
     </script>
-
 </body>
 </html>

@@ -12,16 +12,20 @@
     <!-- Estilos personalizados -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/docto4.jpg') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/icons/apple-touch-icon.png') }}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/icons/favicon-32x32.png') }}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/icons/favicon-16x16.png') }}" />
+    <link rel="manifest" href="{{ url_for('static', filename='img/icons/site.webmanifest') }}" />
 </head>
 <body>
     <header class="position-fixed w-100 top-0 start-0 z-index-1050 bg-white shadow-sm main-header">
         <div class="banner-container top-banner d-block text-center">
-            <marquee behavior="scroll" direction="left" scrollamount="5">
-                <i class="fas fa-map-marker-alt me-2"></i>Calle 123, Barrio Centro, Corozal, Sucre, Colombia 
-                <span class="mx-4">|</span> 
-                <i class="fas fa-phone-alt me-2"></i>304 542 0537
-            </marquee>
-        </div>
+            <div behavior="scroll" direction="left" scrollamount="5">
+              <i class="fas fa-map-marker-alt me-2"></i>Calle 123, Barrio Centro, Corozal, Sucre, Colombia
+              <span class="mx-4">|</span>
+              <i class="fas fa-phone-alt me-2"></i> <a href="tel:300304444">300304444</a>
+            </div>
+          </div>
     
         <div class="container">
             <div class="row align-items-center py-3">

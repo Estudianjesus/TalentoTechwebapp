@@ -131,7 +131,9 @@ def admin():
     total_medicamento = Medicamento.query.count()
     
     solicitudes_pendientes = solicitudes_afiliacion.query.filter_by(estado='Pendiente').limit(5).all()
-    return render_template('admin/admin_dashboard.html', usuario=current_user,total_afiliado=total_afiliado,total_cita=total_cita,total_solicitude=total_solicitude,total_medicamento=total_medicamento,solicitudes_pendientes=solicitudes_pendientes)
+    contactos = contacto.query.all()
+    
+    return render_template('admin/admin_dashboard.html', usuario=current_user,total_afiliado=total_afiliado,total_cita=total_cita,total_solicitude=total_solicitude,total_medicamento=total_medicamento,solicitudes_pendientes=solicitudes_pendientes,contactos=contactos)
 
 @app.route('/admin/farmacia', methods=['GET'])
 @login_required
@@ -312,7 +314,7 @@ def ver_solicitudes():
     if current_user.rol not in ['Administrador', 'Subadministrador']:
         return redirect(url_for('home'))
     
-    solicitudes = solicitudes_afiliacion.query.all()
+    solicitudes = solicitudes_afiliacion.query.filter_by(estado='Pendiente').all()
     
     solicitudes_json = [{
         'id': s.id,
@@ -370,7 +372,8 @@ def aceptar_solicitud(solicitud_id):
             direccion=solicitud.direccion or "",
             rol='Paciente',
             activo=True,
-            afiliado=True
+            afiliado=True,
+            debe_cambiar_clave=True 
         )
 
         db.session.add(nuevo_usuario)
@@ -595,6 +598,21 @@ def eliminar_paciente(id):
         return jsonify({'status': 'error', 'message': 'Paciente no encontrado'}), 404
 
     usuario = Usuario.query.filter_by(numero_documento=paciente.numero_documento).first()
+
+    # Verificar si el paciente tiene citas asociadas
+    citas_asociadas = Cita.query.filter_by(paciente_id=paciente.id).first()
+    if citas_asociadas:
+        return jsonify({
+            'status': 'error',
+            'message': 'No se puede eliminar el paciente porque tiene citas asociadas. Por favor, revise las citas antes de eliminar.'
+        }), 400
+
+    medicamentos = RegistroRetiroMedicamento.query.filter_by(paciente_id=paciente.id).first()
+    if medicamentos:
+        return jsonify({
+            'status': 'error',
+            'message': 'No se puede eliminar el paciente porque tiene medicamentos recetados. Por favor, revise los medicamentos antes de eliminar.'
+        }), 400
 
     try:
         if usuario:
@@ -945,7 +963,9 @@ def Contacto():
         db.session.add(nuevo_contacto)
         db.session.commit()
 
-        flash('Tu mensaje ha sido enviado exitosamente. ¡Gracias por contactarnos!', 'success')
+        # Usar una categoría específica para mensajes de contacto
+        flash('Tu mensaje ha sido enviado exitosamente. ¡Gracias por contactarnos!', 'contacto_success')
+        return redirect(url_for('Contacto'))
 
     return render_template('contacto.html')
 
@@ -1055,19 +1075,34 @@ def login_usuarios():
         if usuario.rol.strip().lower() != "paciente":
             return jsonify({"status": "error", "message": "Acceso restringido. Solo los pacientes pueden iniciar sesión"}), 403
 
-        # Verificar contraseña encriptada
-        if usuario.password != password:
-          return jsonify({"status": "error", "message": "Contraseña incorrecta"}), 401
+        # Verificar contraseña (aquí puedes encriptar con hash si usas)
+        if not check_password_hash(usuario.password, password) and usuario.password != password:
+            return jsonify({"status": "error", "message": "Contraseña incorrecta"}), 401
+        # Verificar si el usuario está activo
+          
+        
 
         # Iniciar sesión
-        login_user(usuario,remember=True)
-
-        # Marcar la sesión como permanente
+        login_user(usuario, remember=True)
         session.permanent = True
 
         print(f"✅ Usuario logueado: {usuario.numero_documento}, Rol: {usuario.rol}, Sesión permanente: {session.permanent}")
-        
-        return jsonify({"status": "success", "redirect_url": "/portal_paciente"})
+
+        # Validar si debe cambiar la contraseña
+        if usuario.debe_cambiar_clave:
+           session['mostrar_modal'] = True
+           return jsonify({
+             "status": "success",
+             "redirect_url": "/portal_paciente",
+             "debe_cambiar_clave": True
+        }), 200
+
+
+        return jsonify({
+            "status": "success",
+            "redirect_url": "/portal_paciente",
+            "mostrar_modal": False  # bandera para el modal
+        }), 200
 
     except Exception as e:
         print(f"❌ Error en el login: {str(e)}")
@@ -1095,7 +1130,7 @@ def portal_paciente():
     paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
     totalcitas = Cita.query.filter_by(paciente_id=paciente.id,estado='Programada').count()
     totalcitas_atendidas = Cita.query.filter_by(paciente_id=paciente.id,estado='Atendida').count()
-    totalmedicamentos = RegistroRetiroMedicamento.query.count()
+    totalmedicamentos = RegistroRetiroMedicamento.query.filter_by(paciente_id=paciente.id).count()                                              
     todas_citas = Cita.query.filter_by(paciente_id=paciente.id).all()
     # Obtener citas programadas como recordatorio para el paciente
     citas = Cita.query.filter(
@@ -1104,6 +1139,9 @@ def portal_paciente():
     Cita.fecha.between(datetime.now(), datetime.now() + timedelta(days=10))
    ).all()
     
+    medicamentos_asignados = RegistroRetiroMedicamento.query.filter_by(paciente_id=paciente.id).all()
+
+    
     # Obtener los slides activos y ordenados para mostrar en el slider
     slides = Slide.query.filter_by(activo=True).order_by(Slide.orden).all()
     
@@ -1111,16 +1149,34 @@ def portal_paciente():
                            totalmedicamentos=totalmedicamentos,
                            totalcitas_atendidas=totalcitas_atendidas,
                            citas=citas,todas_citas=todas_citas,
-                           slides=slides)
+                           slides=slides,medicamentos_asignados=medicamentos_asignados,debe_cambiar_clave=current_user.debe_cambiar_clave)
 
-
-@app.route('/portal_paciente/inicio')
+from werkzeug.security import generate_password_hash, check_password_hash
+@app.route('/cambiar_clave', methods=['POST'])
 @paciente_required
-def Inicio():
+def cambiar_clave():
+    try:
+        data = request.get_json()
 
-    paciente = Paciente.query.filter_by(usuario_id=current_user.id).first()
-    return render_template('usuario_dasword.html' ,paciente=paciente)
+        nueva_clave = data.get("nueva_clave", "").strip()
 
+        if not nueva_clave:
+            return jsonify({"status": "error", "message": "La nueva contraseña es obligatoria"}), 400
+
+        # Encriptar nueva contraseña
+        hashed_password = generate_password_hash(nueva_clave)
+
+        # Actualizar en la base de datos
+        current_user.password = hashed_password
+        current_user.debe_cambiar_clave = False  # Ya no necesita cambiarla
+        db.session.commit()
+
+        flash("Contraseña actualizada correctamente", "success")
+        return jsonify({"status": "success", "message": "Contraseña actualizada correctamente"})
+
+    except Exception as e:
+        print(f"❌ Error al cambiar la contraseña: {str(e)}")
+        return jsonify({"status": "error", "message": "Error interno al cambiar la contraseña"}), 500
 
 @app.route('/portal_paciente/agendar')
 @paciente_required
