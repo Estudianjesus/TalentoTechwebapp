@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
 
 class Usuario(db.Model, UserMixin):
+    __tablename__ = 'usuario' 
     id = db.Column(db.Integer, primary_key=True)
     primer_nombre = db.Column(db.String(50), nullable=True)
     segundo_nombre = db.Column(db.String(50))
@@ -186,6 +187,7 @@ class RegistroRetiroMedicamento(db.Model):
 
 
 class Notificacion(db.Model):
+    __tablename__ = 'notificacion'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     mensaje = db.Column(db.Text, nullable=False)
@@ -193,6 +195,7 @@ class Notificacion(db.Model):
     fecha_notificacion = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Consulta(db.Model):
+    __tablename__ = 'consulta'
     id = db.Column(db.Integer, primary_key=True)
     paciente_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
@@ -252,6 +255,7 @@ class Paciente(db.Model):
 
 
 class RecetaMedica(db.Model):
+    __tablename__ = 'receta_medica'
     id = db.Column(db.Integer, primary_key=True)
     subadministrador_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     paciente_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
@@ -261,6 +265,7 @@ class RecetaMedica(db.Model):
     fecha_prescripcion = db.Column(db.DateTime, default=datetime.utcnow)
     
 class Slide(db.Model):
+    __tablename__ = 'slide'
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(200), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
@@ -274,6 +279,7 @@ def __repr__(self):
     return f'<Slide {self.titulo}>'
     
 class contacto(db.Model):
+    __tablename__ = 'contacto'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     numero_documento = db.Column(db.String(20), nullable=False)

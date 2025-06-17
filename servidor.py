@@ -12,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
 from database import db
+from werkzeug.security import check_password_hash  # Asegúrate de tenerlo importado
 from models import AtencionCita, Cita, HistorialCita, Medicamento, RegistroRetiroMedicamento, Slide, contacto, solicitudes_afiliacion, Usuario, Paciente
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -21,20 +22,17 @@ from datetime import datetime
 import datetime 
 
 app = Flask(__name__)
-
 app.config['SECRET_KEY'] = 'tu_clave_secreta_segura'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@127.0.0.1:3307/eps_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///base.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
-app.config['SESSION_PERMANENT'] = True
 
+# Inicialización de extensiones
 db.init_app(app)
 migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.login_view = "login_admin"
 login_manager.init_app(app)
-
 
 # 🔹 Verificar conexión a la base de datos
 with app.app_context():
@@ -54,7 +52,9 @@ def is_safe_url(target):
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
-# Modulo admistracion
+from werkzeug.security import check_password_hash
+
+# Módulo administración
 @app.route('/login_admin', methods=['GET', 'POST'])
 def login_admin():
     if current_user.is_authenticated:
@@ -84,10 +84,19 @@ def login_admin():
 
     user = Usuario.query.filter_by(usuario=usuario).first()
     if not user:
-        return jsonify({"status": "error", "message": "Usuario no encontrado", "clear_fields": True}), 404
+        return jsonify({
+            "status": "error",
+            "message": "Usuario no encontrado",
+            "clear_fields": True
+        }), 404
 
-    if user.password != password:
-        return jsonify({"status": "error", "message": "Contraseña incorrecta", "clear_fields": True}), 401
+    # Verificar contraseña cifrada
+    if not check_password_hash(user.password, password):
+        return jsonify({
+            "status": "error",
+            "message": "Contraseña incorrecta",
+            "clear_fields": True
+        }), 401
 
     login_user(user)
     session.permanent = True
@@ -104,10 +113,18 @@ def login_admin():
     destino = rutas.get(user.rol)
 
     if destino:
-        return jsonify({"status": "success", "redirect_url": destino, "clear_fields": False})
+        return jsonify({
+            "status": "success",
+            "redirect_url": destino,
+            "clear_fields": False
+        })
     else:
-        logout_user() 
-        return jsonify({"status": "error", "message": "Rol no válido, contacte al administrador", "clear_fields": True}), 403
+        logout_user()
+        return jsonify({
+            "status": "error",
+            "message": "Rol no válido, contacte al administrador",
+            "clear_fields": True
+        }), 403
 
 # Ruta principal
 @app.route('/')
